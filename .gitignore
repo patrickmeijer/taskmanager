@@ -12,6 +12,8 @@ buildNumber.properties
 build/
 !**/src/main/**/target/
 !**/src/test/**/target/
+application-local.yaml
+.env
 
 ### STS ###
 .apt_generated
