@@ -1,5 +1,7 @@
 package com.patrick.taskmanager.task;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,8 +18,25 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<Task> findAll() {
-        return taskService.getAllTasks();
+    public List<Task> getAllTasks(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String title
+    ) {
+        if (priority != null && status != null) {
+            return taskService.getTasksByPriorityAndStatus(priority, status);
+        }
+        if (status != null) {
+            return taskService.getTasksByStatus(status);
+        }
+        if (priority != null) {
+            return taskService.getTasksByPriority(priority);
+        }
+        if  (title != null) {
+            return taskService.getTasksByTitleContaining(title);
+        }
+
+        return taskService.getTasksByOrderByCreatedAtDesc();
     }
 
     @GetMapping("/{taskId}")
@@ -26,20 +45,20 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task save(@RequestBody Task task) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public Task createTask(@RequestBody Task task) {
         task.setId(null);
         return taskService.save(task);
     }
 
     @PutMapping("{taskId}")
-    public Task updateTask(@PathVariable("taskId") Long taskId, @RequestBody Task task) {
-        task.setId(taskId);
-        return taskService.save(task);
+    public Task updateTask(@PathVariable("taskId") Long taskId, @RequestBody Task taskDetails) {
+        return taskService.updateTask(taskId, taskDetails);
     }
 
     @DeleteMapping("/{taskId}")
-    public String deleteTask(@PathVariable("taskId") Long taskId) {
+    public ResponseEntity<Object> deleteTask(@PathVariable("taskId") Long taskId) {
         taskService.deleteTaskById(taskId);
-        return "Task with id " + taskId + " was deleted";
+        return ResponseEntity.noContent().build();
     }
 }
