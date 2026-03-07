@@ -43,14 +43,12 @@ public class TaskService {
     }
 
     private void validateTask(Task task) {
-        // 1. Datum check
         if (task.getDeadline() != null && task.getPlannedAt() != null) {
             if (task.getDeadline().isBefore(task.getPlannedAt())) {
                 throw new IllegalStateException("Deadline cannot be before planned date");
             }
         }
 
-        // 2. Tijd check (StartTime / EndTime)
         if (task.getStartTime() != null && task.getEndTime() != null) {
             if (task.getEndTime().isBefore(task.getStartTime())) {
                 throw new IllegalStateException("End time cannot be before start time");
