@@ -162,23 +162,12 @@ public class Task {
 
     @PrePersist
     protected void onCreate() {
-        validateDates();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        validateDates();
         this.updatedAt = LocalDateTime.now();
-    }
-
-    private void validateDates() {
-        if (plannedAt != null && deadline != null && deadline.isBefore(plannedAt)) {
-            throw new IllegalStateException("Deadline cannot be before planned date.");
-        }
-        if (startTime != null && endTime != null && endTime.isBefore(startTime)) {
-            throw new IllegalStateException("End time cannot be before start time.");
-        }
     }
 }

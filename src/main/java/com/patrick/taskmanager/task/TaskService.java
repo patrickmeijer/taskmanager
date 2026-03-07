@@ -27,6 +27,7 @@ public class TaskService {
     }
 
     public Task save(Task task) {
+        validateTask(task);
         return taskRepository.save(task);
     }
 
@@ -37,7 +38,24 @@ public class TaskService {
         existingTask.setStatus(taskDetails.getStatus());
         existingTask.setPriority(taskDetails.getPriority());
 
+        validateTask(existingTask);
         return taskRepository.save(existingTask);
+    }
+
+    private void validateTask(Task task) {
+        // 1. Datum check
+        if (task.getDeadline() != null && task.getPlannedAt() != null) {
+            if (task.getDeadline().isBefore(task.getPlannedAt())) {
+                throw new IllegalStateException("Deadline cannot be before planned date");
+            }
+        }
+
+        // 2. Tijd check (StartTime / EndTime)
+        if (task.getStartTime() != null && task.getEndTime() != null) {
+            if (task.getEndTime().isBefore(task.getStartTime())) {
+                throw new IllegalStateException("End time cannot be before start time");
+            }
+        }
     }
 
     public Optional<Task> getTaskById(Long taskId) {
