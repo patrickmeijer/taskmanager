@@ -3,6 +3,7 @@ package com.patrick.taskmanager.task;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,6 +26,12 @@ public class Task {
     @Column(name = "priority", nullable = false)
     private String priority = "MEDIUM";
 
+    @Column(name = "planned_at")
+    private LocalDate plannedAt;
+
+    @Column(name = "deadline")
+    private LocalDate deadline;
+
     @Column(name = "start_time")
     private LocalDateTime startTime;
 
@@ -39,7 +46,7 @@ public class Task {
 
     public Task() {}
 
-    public Task(String title, String description, String status, String priority, LocalDateTime startTime, LocalDateTime endTime) {
+    public Task(String title, String description, String status, String priority, LocalDate plannedAt, LocalDate deadline, LocalDateTime startTime, LocalDateTime endTime) {
         this.title = title;
         this.description = description;
         if (status != null) {
@@ -48,8 +55,14 @@ public class Task {
         if  (priority != null) {
             this.priority = priority;
         }
+        this.plannedAt = plannedAt;
+        this.deadline = deadline;
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    public Task(String title, String description, String status, String priority, LocalDate plannedAt, LocalDate deadline) {
+        this(title, description, status, priority, plannedAt, deadline, null, null);
     }
 
     public Long getId() {
@@ -90,6 +103,22 @@ public class Task {
 
     public void setPriority(String priority) {
         this.priority = priority;
+    }
+
+    public LocalDate getPlannedAt() {
+        return plannedAt;
+    }
+
+    public void setPlannedAt(LocalDate plannedAt) {
+        this.plannedAt = plannedAt;
+    }
+
+    public LocalDate getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDate deadline) {
+        this.deadline = deadline;
     }
 
     public LocalDateTime getStartTime() {
@@ -133,12 +162,23 @@ public class Task {
 
     @PrePersist
     protected void onCreate() {
+        validateDates();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
+        validateDates();
         this.updatedAt = LocalDateTime.now();
+    }
+
+    private void validateDates() {
+        if (plannedAt != null && deadline != null && deadline.isBefore(plannedAt)) {
+            throw new IllegalStateException("Deadline cannot be before planned date.");
+        }
+        if (startTime != null && endTime != null && endTime.isBefore(startTime)) {
+            throw new IllegalStateException("End time cannot be before start time.");
+        }
     }
 }
