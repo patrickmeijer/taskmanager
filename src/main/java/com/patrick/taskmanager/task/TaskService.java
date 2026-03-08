@@ -23,7 +23,7 @@ public class TaskService {
         }
     }
 
-    public List<Task> searchTasks(String status, String priority, String title, Sort sort) {
+    public List<Task> searchTasks(TaskStatus status, TaskPriority priority, String title, Sort sort) {
         return taskRepository.findAllByFilters(status, priority, title, sort);
     }
 

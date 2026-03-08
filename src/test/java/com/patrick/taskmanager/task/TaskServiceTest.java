@@ -47,12 +47,12 @@ class TaskServiceTest {
     @Test
     void whenAllFiltersProvided_thenReturnFilteredTasks() {
         Sort sort = Sort.by("createdAt").descending();
-        when(taskRepository.findAllByFilters("IN_PROGRESS", "HIGH", "Portfolio Project", sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort)).thenReturn(List.of(testTask));
 
-        List<Task> result = taskService.searchTasks("IN_PROGRESS", "HIGH", "Portfolio Project", sort);
+        List<Task> result = taskService.searchTasks(TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters("IN_PROGRESS", "HIGH", "Portfolio Project", sort);
+        verify(taskRepository, times(1)).findAllByFilters(TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort);
     }
 
     @Test
@@ -69,23 +69,23 @@ class TaskServiceTest {
     @Test
     void whenStatusProvided_thenReturnTasksByStatus() {
         Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters("IN_PROGRESS", null, null, sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(TaskStatus.IN_PROGRESS, null, null, sort)).thenReturn(List.of(testTask));
 
-        List<Task> result = taskService.searchTasks("IN_PROGRESS", null, null, sort);
+        List<Task> result = taskService.searchTasks(TaskStatus.IN_PROGRESS, null, null, sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters("IN_PROGRESS", null, null, sort);
+        verify(taskRepository, times(1)).findAllByFilters(TaskStatus.IN_PROGRESS, null, null, sort);
     }
 
     @Test
     void whenPriorityProvided_thenReturnTasksByPriority() {
         Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters(null, "HIGH", null, sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(null, TaskPriority.HIGH, null, sort)).thenReturn(List.of(testTask));
 
-        List<Task> result = taskService.searchTasks(null, "HIGH", null, sort);
+        List<Task> result = taskService.searchTasks(null, TaskPriority.HIGH, null, sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters(null, "HIGH", null, sort);
+        verify(taskRepository, times(1)).findAllByFilters(null, TaskPriority.HIGH, null, sort);
     }
 
     @Test
@@ -102,12 +102,12 @@ class TaskServiceTest {
     @Test
     void whenPriorityAndStatusProvided_thenReturnTasksByBoth() {
         Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters("IN_PROGRESS", "HIGH", null, sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(TaskStatus.OPEN, TaskPriority.HIGH, null, sort)).thenReturn(List.of(testTask));
 
-        List<Task> result = taskService.searchTasks("IN_PROGRESS", "HIGH", null, sort);
+        List<Task> result = taskService.searchTasks(TaskStatus.OPEN, TaskPriority.HIGH, null, sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters("IN_PROGRESS", "HIGH", null, sort);
+        verify(taskRepository, times(1)).findAllByFilters(TaskStatus.OPEN, TaskPriority.HIGH, null, sort);
     }
 
     // ------------------------------
@@ -177,8 +177,8 @@ class TaskServiceTest {
         Task updateDetails = new Task();
         updateDetails.setTitle("Updated Title");
         updateDetails.setDescription("Updated Description");
-        updateDetails.setStatus("IN_PROGRESS");
-        updateDetails.setPriority("HIGH");
+        updateDetails.setStatus(TaskStatus.IN_PROGRESS);
+        updateDetails.setPriority(TaskPriority.HIGH);
         updateDetails.setPlannedAt(LocalDate.of(2026, 3, 20));
 
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask));
@@ -188,8 +188,8 @@ class TaskServiceTest {
 
         assertEquals("Updated Title", result.getTitle());
         assertEquals("Updated Description", result.getDescription());
-        assertEquals("IN_PROGRESS", result.getStatus());
-        assertEquals("HIGH", result.getPriority());
+        assertEquals(TaskStatus.IN_PROGRESS, result.getStatus());
+        assertEquals(TaskPriority.HIGH, result.getPriority());
         assertEquals(LocalDate.of(2026, 3, 20), result.getPlannedAt());
         verify(taskRepository, times(1)).findById(taskId);
         verify(taskRepository, times(1)).save(testTask);

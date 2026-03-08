@@ -13,8 +13,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             "(:priority IS NULL OR t.priority = :priority) AND " +
             "(:title IS NULL OR t.title LIKE %:title%)")
     List<Task> findAllByFilters(
-            @Param("status") String status,
-            @Param("priority") String priority,
+            @Param("status") TaskStatus status,
+            @Param("priority") TaskPriority priority,
             @Param("title") String title,
             Sort sort
     );

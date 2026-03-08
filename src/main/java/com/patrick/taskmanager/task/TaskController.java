@@ -20,8 +20,8 @@ public class TaskController {
 
     @GetMapping
     public List<Task> getAllTasks(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) TaskPriority priority,
             @RequestParam(required = false) String title,
             Sort sort
     ) {

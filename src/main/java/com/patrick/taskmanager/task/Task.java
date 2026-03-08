@@ -20,11 +20,13 @@ public class Task {
     @Column(name = "description")
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status = "OPEN";
+    private TaskStatus status = TaskStatus.OPEN;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "priority", nullable = false)
-    private String priority = "MEDIUM";
+    private TaskPriority priority = TaskPriority.MEDIUM;
 
     @Column(name = "planned_at")
     private LocalDate plannedAt;
@@ -46,7 +48,7 @@ public class Task {
 
     public Task() {}
 
-    public Task(String title, String description, String status, String priority, LocalDate plannedAt, LocalDate deadline, LocalDateTime startTime, LocalDateTime endTime) {
+    public Task(String title, String description, TaskStatus status, TaskPriority priority, LocalDate plannedAt, LocalDate deadline, LocalDateTime startTime, LocalDateTime endTime) {
         this.title = title;
         this.description = description;
         if (status != null) {
@@ -61,7 +63,7 @@ public class Task {
         this.endTime = endTime;
     }
 
-    public Task(String title, String description, String status, String priority, LocalDate plannedAt, LocalDate deadline) {
+    public Task(String title, String description, TaskStatus status, TaskPriority priority, LocalDate plannedAt, LocalDate deadline) {
         this(title, description, status, priority, plannedAt, deadline, null, null);
     }
 
@@ -89,19 +91,19 @@ public class Task {
         this.description = description;
     }
 
-    public String getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 
-    public String getPriority() {
+    public TaskPriority getPriority() {
         return priority;
     }
 
-    public void setPriority(String priority) {
+    public void setPriority(TaskPriority priority) {
         this.priority = priority;
     }
 
