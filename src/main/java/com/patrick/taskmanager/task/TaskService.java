@@ -66,8 +66,4 @@ public class TaskService {
         checkTaskExists(taskId);
         taskRepository.deleteById(taskId);
     }
-
-    public List<Task> getTasksByOrderByCreatedAtDesc() {
-        return taskRepository.findAllByOrderByCreatedAtDesc();
-    }
 }

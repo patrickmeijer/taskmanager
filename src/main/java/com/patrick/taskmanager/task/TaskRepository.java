@@ -18,9 +18,4 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             @Param("title") String title,
             Sort sort
     );
-    List<Task> findAllByStatus(String status);
-    List<Task> findAllByPriority(String priority);
-    List<Task> findAllByPriorityAndStatus(String priority, String status);
-    List<Task> findAllByTitleContaining(String title);
-    List<Task> findAllByOrderByCreatedAtDesc();
 }
