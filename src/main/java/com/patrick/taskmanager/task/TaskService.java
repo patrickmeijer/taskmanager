@@ -2,6 +2,7 @@ package com.patrick.taskmanager.task;
 
 import com.patrick.taskmanager.exception.TaskNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,8 +23,8 @@ public class TaskService {
         }
     }
 
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+    public List<Task> searchTasks(String status, String priority, String title, Sort sort) {
+        return taskRepository.findAllByFilters(status, priority, title, sort);
     }
 
     public Task save(Task task) {
@@ -64,22 +65,6 @@ public class TaskService {
     public void deleteTaskById(Long taskId) {
         checkTaskExists(taskId);
         taskRepository.deleteById(taskId);
-    }
-
-    public List<Task> getTasksByStatus(String status) {
-        return taskRepository.findAllByStatus(status);
-    }
-
-    public List<Task> getTasksByPriority(String priority) {
-        return taskRepository.findAllByPriority(priority);
-    }
-
-    public List<Task> getTasksByPriorityAndStatus(String priority, String status) {
-        return taskRepository.findAllByPriorityAndStatus(priority, status);
-    }
-
-    public List<Task> getTasksByTitleContaining(String title) {
-        return taskRepository.findAllByTitleContaining(title);
     }
 
     public List<Task> getTasksByOrderByCreatedAtDesc() {

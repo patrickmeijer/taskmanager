@@ -1,5 +1,6 @@
 package com.patrick.taskmanager.task;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,22 +22,10 @@ public class TaskController {
     public List<Task> getAllTasks(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String priority,
-            @RequestParam(required = false) String title
+            @RequestParam(required = false) String title,
+            Sort sort
     ) {
-        if (priority != null && status != null) {
-            return taskService.getTasksByPriorityAndStatus(priority, status);
-        }
-        if (status != null) {
-            return taskService.getTasksByStatus(status);
-        }
-        if (priority != null) {
-            return taskService.getTasksByPriority(priority);
-        }
-        if  (title != null) {
-            return taskService.getTasksByTitleContaining(title);
-        }
-
-        return taskService.getTasksByOrderByCreatedAtDesc();
+        return taskService.searchTasks(status, priority, title, sort);
     }
 
     @GetMapping("/{taskId}")

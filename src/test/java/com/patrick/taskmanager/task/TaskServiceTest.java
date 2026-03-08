@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,18 +41,73 @@ class TaskServiceTest {
     }
 
     // ------------------------------
-    // getAllTasks
+    // searchTasks
     // ------------------------------
 
     @Test
-    void whenGetAllTasks_thenReturnAllTasks() {
-        when(taskRepository.findAll()).thenReturn(List.of(testTask));
+    void whenAllFiltersProvided_thenReturnFilteredTasks() {
+        Sort sort = Sort.by("createdAt").descending();
+        when(taskRepository.findAllByFilters("IN_PROGRESS", "HIGH", "Portfolio Project", sort)).thenReturn(List.of(testTask));
 
-        List<Task> result = taskService.getAllTasks();
+        List<Task> result = taskService.searchTasks("IN_PROGRESS", "HIGH", "Portfolio Project", sort);
 
         assertEquals(1, result.size());
-        assertEquals("Portfolio Project", result.get(0).getTitle());
-        verify(taskRepository, times(1)).findAll();
+        verify(taskRepository, times(1)).findAllByFilters("IN_PROGRESS", "HIGH", "Portfolio Project", sort);
+    }
+
+    @Test
+    void whenNoFilters_thenReturnAllTasksSorted() {
+        Sort sort = Sort.by("createdAt").descending();
+        when(taskRepository.findAllByFilters(null, null, null, sort)).thenReturn(List.of(testTask));
+
+        List<Task> result = taskService.searchTasks(null, null, null, sort);
+
+        assertEquals(1, result.size());
+        verify(taskRepository, times(1)).findAllByFilters(null, null, null, sort);
+    }
+
+    @Test
+    void whenStatusProvided_thenReturnTasksByStatus() {
+        Sort sort = Sort.unsorted();
+        when(taskRepository.findAllByFilters("IN_PROGRESS", null, null, sort)).thenReturn(List.of(testTask));
+
+        List<Task> result = taskService.searchTasks("IN_PROGRESS", null, null, sort);
+
+        assertEquals(1, result.size());
+        verify(taskRepository, times(1)).findAllByFilters("IN_PROGRESS", null, null, sort);
+    }
+
+    @Test
+    void whenPriorityProvided_thenReturnTasksByPriority() {
+        Sort sort = Sort.unsorted();
+        when(taskRepository.findAllByFilters(null, "HIGH", null, sort)).thenReturn(List.of(testTask));
+
+        List<Task> result = taskService.searchTasks(null, "HIGH", null, sort);
+
+        assertEquals(1, result.size());
+        verify(taskRepository, times(1)).findAllByFilters(null, "HIGH", null, sort);
+    }
+
+    @Test
+    void whenTitleProvided_thenReturnTasksByTitle() {
+        Sort sort = Sort.unsorted();
+        when(taskRepository.findAllByFilters(null, null, "Portfolio Project", sort)).thenReturn(List.of(testTask));
+
+        List<Task> result = taskService.searchTasks(null, null, "Portfolio Project", sort);
+
+        assertEquals(1, result.size());
+        verify(taskRepository, times(1)).findAllByFilters(null, null, "Portfolio Project", sort);
+    }
+
+    @Test
+    void whenPriorityAndStatusProvided_thenReturnTasksByBoth() {
+        Sort sort = Sort.unsorted();
+        when(taskRepository.findAllByFilters("IN_PROGRESS", "HIGH", null, sort)).thenReturn(List.of(testTask));
+
+        List<Task> result = taskService.searchTasks("IN_PROGRESS", "HIGH", null, sort);
+
+        assertEquals(1, result.size());
+        verify(taskRepository, times(1)).findAllByFilters("IN_PROGRESS", "HIGH", null, sort);
     }
 
     // ------------------------------
@@ -168,33 +224,5 @@ class TaskServiceTest {
 
         assertThrows(TaskNotFoundException.class, () -> taskService.deleteTaskById(taskId));
         verify(taskRepository, never()).deleteById(anyLong());
-    }
-
-    // ------------------------------
-    // getTasksByStatus
-    // ------------------------------
-
-    @Test
-    void whenGetTasksByStatus_thenReturnMatchingTasks() {
-        when(taskRepository.findAllByStatus("IN_PROGRESS")).thenReturn(List.of(testTask));
-
-        List<Task> result =  taskService.getTasksByStatus("IN_PROGRESS");
-
-        assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByStatus("IN_PROGRESS");
-    }
-
-    // ------------------------------
-    // getTasksByPriority
-    // ------------------------------
-
-    @Test
-    void whenGetTasksByPriority_thenReturnMatchingTasks() {
-        when(taskRepository.findAllByPriority("HIGH")).thenReturn(List.of(testTask));
-
-        List<Task> result =  taskService.getTasksByPriority("HIGH");
-
-        assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByPriority("HIGH");
     }
 }
