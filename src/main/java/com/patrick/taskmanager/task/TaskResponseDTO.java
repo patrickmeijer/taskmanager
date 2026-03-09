@@ -72,7 +72,7 @@ public class TaskResponseDTO {
         this.deadline = deadline;
     }
 
-    private LocalDateTime  getStartTime() {
+    public LocalDateTime  getStartTime() {
         return startTime;
     }
     public void setStartTime(LocalDateTime startTime) {
