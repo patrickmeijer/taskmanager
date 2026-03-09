@@ -6,41 +6,48 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
+    private final TaskMapper taskMapper;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository) {
+    public TaskService(TaskRepository taskRepository, TaskMapper taskMapper) {
         this.taskRepository = taskRepository;
+        this.taskMapper = taskMapper;
     }
 
-    public void checkTaskExists(Long taskId) {
-        if (!taskRepository.existsById(taskId)) {
-            throw new TaskNotFoundException(taskId);
+    public List<TaskResponseDTO> searchTasks(TaskStatus status, TaskPriority priority, String title, Sort sort) {
+        return taskRepository.findAllByFilters(status, priority, title, sort)
+                .stream()
+                .map(taskMapper::toResponseDTO)
+                .toList();
+    }
+
+    public TaskResponseDTO save(TaskRequestDTO dto) {
+        Task task = taskMapper.toEntity(dto);
+
+        if (task.getStatus() == null) {
+            task.setStatus(TaskStatus.OPEN);
         }
-    }
-
-    public List<Task> searchTasks(TaskStatus status, TaskPriority priority, String title, Sort sort) {
-        return taskRepository.findAllByFilters(status, priority, title, sort);
-    }
-
-    public Task save(Task task) {
         validateTask(task);
-        return taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
+        return taskMapper.toResponseDTO(savedTask);
     }
 
-    public Task updateTask(Long taskId, Task taskDetails) {
-        Task existingTask = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+    public TaskResponseDTO updateTask(Long taskId, TaskRequestDTO taskDetails) {
+        Task existingTask = findTaskByIdOrThrow(taskId);
         existingTask.setTitle(taskDetails.getTitle());
         existingTask.setDescription(taskDetails.getDescription());
         existingTask.setStatus(taskDetails.getStatus());
         existingTask.setPriority(taskDetails.getPriority());
+        existingTask.setPlannedAt(taskDetails.getPlannedAt());
+        existingTask.setDeadline(taskDetails.getDeadline());
 
         validateTask(existingTask);
-        return taskRepository.save(existingTask);
+        Task updatedTask = taskRepository.save(existingTask);
+        return taskMapper.toResponseDTO(updatedTask);
     }
 
     private void validateTask(Task task) {
@@ -57,13 +64,17 @@ public class TaskService {
         }
     }
 
-    public Optional<Task> getTaskById(Long taskId) {
-        checkTaskExists(taskId);
-        return taskRepository.findById(taskId);
+    public Task findTaskByIdOrThrow(Long taskId) {
+        return taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
+    }
+
+    public TaskResponseDTO getTaskById(Long taskId) {
+        Task task = findTaskByIdOrThrow(taskId);
+        return taskMapper.toResponseDTO(task);
     }
 
     public void deleteTaskById(Long taskId) {
-        checkTaskExists(taskId);
-        taskRepository.deleteById(taskId);
+        taskRepository.delete(findTaskByIdOrThrow(taskId));
     }
 }

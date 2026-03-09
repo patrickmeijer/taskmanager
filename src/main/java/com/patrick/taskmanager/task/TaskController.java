@@ -1,12 +1,11 @@
 package com.patrick.taskmanager.task;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -19,35 +18,36 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<Task> getAllTasks(
+    @ResponseStatus(HttpStatus.OK)
+    public List<TaskResponseDTO> searchTasks(
             @RequestParam(required = false) TaskStatus status,
             @RequestParam(required = false) TaskPriority priority,
             @RequestParam(required = false) String title,
-            Sort sort
-    ) {
+            Sort sort) {
         return taskService.searchTasks(status, priority, title, sort);
     }
 
     @GetMapping("/{taskId}")
-    public Optional<Task> getTaskById(@PathVariable("taskId") Long taskId) {
+    @ResponseStatus(HttpStatus.OK)
+    public TaskResponseDTO getTaskById(@PathVariable Long taskId) {
         return taskService.getTaskById(taskId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Task createTask(@RequestBody Task task) {
-        task.setId(null);
-        return taskService.save(task);
+    public TaskResponseDTO createTask(@Valid @RequestBody TaskRequestDTO taskRequestDTO) {
+        return taskService.save(taskRequestDTO);
     }
 
-    @PutMapping("{taskId}")
-    public Task updateTask(@PathVariable("taskId") Long taskId, @RequestBody Task taskDetails) {
-        return taskService.updateTask(taskId, taskDetails);
+    @PutMapping("/{taskId}")
+    @ResponseStatus(HttpStatus.OK)
+    public TaskResponseDTO updateTask(@PathVariable Long taskId, @Valid @RequestBody TaskRequestDTO taskRequestDTO) {
+        return taskService.updateTask(taskId, taskRequestDTO);
     }
 
     @DeleteMapping("/{taskId}")
-    public ResponseEntity<Object> deleteTask(@PathVariable("taskId") Long taskId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTask(@PathVariable Long taskId) {
         taskService.deleteTaskById(taskId);
-        return ResponseEntity.noContent().build();
     }
 }
