@@ -9,6 +9,7 @@ public class TaskRequestDTO {
     @Size(max = 100)
     private String title;
 
+    @Size(max = 500)
     private String description;
 
     private TaskStatus status;
@@ -16,10 +17,10 @@ public class TaskRequestDTO {
     @NotNull(message = "Priority is mandatory")
     private TaskPriority priority;
 
-    @Future(message = "Deadline must be in the future")
+    @FutureOrPresent(message = "Deadline must be in the future")
     private LocalDate plannedAt;
 
-    @Future(message = "Deadline must be in the future")
+    @FutureOrPresent(message = "Deadline must be in the future")
     private LocalDate deadline;
 
     private Long userId;
