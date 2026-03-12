@@ -14,7 +14,11 @@ public class TaskResponseDTO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private Long userId;
 
+    public TaskResponseDTO() {
+    }
 
     public Long getId() {
         return id;
@@ -94,17 +98,37 @@ public class TaskResponseDTO {
         this.createdAt = createdAt;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
     @Override
     public String toString() {
         return "TaskResponseDTO{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", status='" + status + '\'' +
-                ", priority='" + priority + '\'' +
-                ", getPlannedAt=" + plannedAt +
+                ", status=" + status +
+                ", priority=" + priority +
+                ", plannedAt=" + plannedAt +
                 ", deadline=" + deadline +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
                 ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", userId=" + userId +
                 '}';
     }
 }

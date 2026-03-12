@@ -1,5 +1,6 @@
 package com.patrick.taskmanager.task;
 
+import com.patrick.taskmanager.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
@@ -45,6 +46,11 @@ public class Task {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
 
     public Task() {}
 
@@ -155,14 +161,24 @@ public class Task {
         this.updatedAt = updatedAt;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     @Override
     public String toString() {
         return "Task{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", status='" + status + '\'' +
-                ", priority='" + priority + '\'' +
+                ", status=" + status +
+                ", priority=" + priority +
+                ", plannedAt=" + plannedAt +
+                ", deadline=" + deadline +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
                 ", createdAt=" + createdAt +

@@ -22,6 +22,12 @@ public class TaskRequestDTO {
     @Future(message = "Deadline must be in the future")
     private LocalDate deadline;
 
+    private Long userId;
+
+
+    public TaskRequestDTO() {
+    }
+
     public String getTitle() {
         return title;
     }
@@ -70,6 +76,11 @@ public class TaskRequestDTO {
         this.deadline = deadline;
     }
 
-    public TaskRequestDTO() {
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

@@ -19,6 +19,10 @@ public class TaskMapper {
         dto.setStartTime(task.getStartTime());
         dto.setEndTime(task.getEndTime());
         dto.setCreatedAt(task.getCreatedAt());
+        dto.setUpdatedAt(task.getUpdatedAt());
+        if (task.getUser() != null) {
+            dto.setUserId(task.getUser().getId());
+        }
 
         return dto;
     }
@@ -32,6 +36,7 @@ public class TaskMapper {
         task.setPriority(dto.getPriority());
         task.setPlannedAt(dto.getPlannedAt());
         task.setDeadline(dto.getDeadline());
+        task.setUser(null);
 
         return task;
     }
