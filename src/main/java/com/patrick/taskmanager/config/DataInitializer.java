@@ -5,6 +5,8 @@ import com.patrick.taskmanager.task.Task;
 import com.patrick.taskmanager.task.TaskPriority;
 import com.patrick.taskmanager.task.TaskRepository;
 import com.patrick.taskmanager.task.TaskStatus;
+import com.patrick.taskmanager.user.User;
+import com.patrick.taskmanager.user.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +18,18 @@ import java.util.List;
 @Configuration
 public class DataInitializer {
     @Bean
-    CommandLineRunner initDatabase(TaskRepository repository) {
+    CommandLineRunner initDatabase(TaskRepository taskRepository, UserRepository userRepository) {
         return args -> {
-            repository.deleteAll();
-            List<Task> tasks = repository.saveAll(List.of(
+            taskRepository.deleteAll();
+            userRepository.deleteAll();
+
+            User testUser = new User();
+            testUser.setUsername("testuser");
+            testUser.setPassword("dummy-password-only-for-local-dev");
+            testUser.setEmail("test@test.com");
+            User savedUser = userRepository.save(testUser);
+
+            List<Task> tasks = List.of(
                 // 1. High priority with a deadline
                 new Task("Groceries", "Buy milk, eggs, and bread", TaskStatus.OPEN, TaskPriority.HIGH, null, LocalDate.now().plusDays(1)),
                 // 2. Advanced: Specific time block for a workshop
@@ -39,11 +49,17 @@ public class DataInitializer {
                 new Task("Read Clean Code", "Read chapter 4 about formatting", TaskStatus.IN_PROGRESS, TaskPriority.LOW, null, null),
                 new Task("Fix Auth Bug", "Resolve NullPointerException in Login", TaskStatus.COMPLETED, TaskPriority.HIGH, null, LocalDate.now().minusDays(2)),
                 new Task("Team Sync", "Weekly progress update", TaskStatus.OPEN, TaskPriority.MEDIUM, LocalDate.now().plusDays(1), LocalDate.now().plusDays(1))
-            ));
+            );
 
-            Long firstId = tasks.get(0).getId();
-            Long lastId = tasks.get(tasks.size() - 1).getId();
-            System.out.println("--- DB refreshed with 10 tasks! New ID range " + firstId + " to " + lastId + " ---");
+            tasks.forEach(task -> task.setUser(savedUser));
+            List<Task> savedTasks = taskRepository.saveAll(tasks);
+
+            if (!savedTasks.isEmpty()) {
+                Long firstId = savedTasks.get(0).getId();
+                Long lastId = savedTasks.get(savedTasks.size() - 1).getId();
+                System.out.println("--- DB refreshed with 10 tasks for user: " + savedUser.getUsername() + " ---");
+                System.out.println("--- New ID range: " + firstId + " to " + lastId + " ---");
+            }
         };
     }
 }

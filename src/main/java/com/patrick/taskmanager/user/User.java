@@ -36,7 +36,7 @@ public class User {
     @Column(name = "updated_at", nullable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Task> tasks = new ArrayList<>();
 
 
@@ -114,6 +114,10 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
     }
 
     @Override
