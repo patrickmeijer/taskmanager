@@ -18,9 +18,14 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation Error", exc.getMessage());
     }
 
-    @ExceptionHandler(TaskNotFoundException.class)
-    public ResponseEntity<Object> handleNotFound(TaskNotFoundException exc) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Object> handleNotFound(ResourceNotFoundException exc) {
         return buildResponse(HttpStatus.NOT_FOUND, "Not found", exc.getMessage());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Object> handleConflict(ConflictException exc) {
+        return buildResponse(HttpStatus.CONFLICT, "Conflict", exc.getMessage());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
