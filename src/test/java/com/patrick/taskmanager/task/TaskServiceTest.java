@@ -220,7 +220,7 @@ class TaskServiceTest {
     }
 
     // -------------------------
-    // updateTask
+    // update
     // -------------------------
 
     @Test
@@ -238,7 +238,7 @@ class TaskServiceTest {
         when(taskRepository.save(testTask)).thenReturn(testTask);
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
-        TaskResponseDTO result = taskService.updateTask(taskId, updateRequest);
+        TaskResponseDTO result = taskService.update(taskId, updateRequest);
 
         assertNotNull(result);
         verify(taskRepository, times(1)).findById(taskId);
@@ -251,7 +251,7 @@ class TaskServiceTest {
         Long nonExistingId = 999L;
         when(taskRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
-        assertThrows(TaskNotFoundException.class, () -> taskService.updateTask(nonExistingId, testRequest));
+        assertThrows(TaskNotFoundException.class, () -> taskService.update(nonExistingId, testRequest));
         verify(taskRepository, never()).save(any(Task.class));
     }
 

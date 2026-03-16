@@ -4,22 +4,25 @@ import com.patrick.taskmanager.exception.EmailAlreadyExistsException;
 import com.patrick.taskmanager.exception.UserNotFoundException;
 import com.patrick.taskmanager.exception.UsernameAlreadyTakenException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, UserMapper userMapper) {
+    public UserService(UserRepository userRepository, UserMapper userMapper,  PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserResponseDTO> getAllUsers() {
@@ -29,23 +32,33 @@ public class UserService {
                 .toList();
     }
 
-    public UserResponseDTO save(UserRequestDTO dto) {
-        validateUniqueness(dto, null);
+    @Transactional
+    public UserResponseDTO save(UserRequestDTO request) {
+        validateUniqueness(request, null);
 
-        User user = userMapper.toEntity(dto);
+        User user = userMapper.toEntity(request);
+
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        user.setPassword(encodedPassword);
+
         User savedUser = userRepository.save(user);
         return userMapper.toResponseDTO(savedUser);
     }
 
-    public UserResponseDTO updateUser(Long userId, UserRequestDTO userDetails) {
+    @Transactional
+    public UserResponseDTO update(Long userId, UserRequestDTO request) {
         User existingUser = findUserByIdOrThrow(userId);
 
-        validateUniqueness(userDetails, userId);
-        existingUser.setUsername(userDetails.getUsername());
-        existingUser.setPassword(userDetails.getPassword()); // TODO Bcrypt hashing
-        existingUser.setEmail(userDetails.getEmail());
-        existingUser.setFirstName(userDetails.getFirstName());
-        existingUser.setLastName(userDetails.getLastName());
+        validateUniqueness(request, userId);
+        existingUser.setUsername(request.getUsername());
+        existingUser.setPassword(request.getPassword()); // TODO Bcrypt hashing
+        existingUser.setEmail(request.getEmail());
+        existingUser.setFirstName(request.getFirstName());
+        existingUser.setLastName(request.getLastName());
+
+        if (request.getPassword() != null &&  !request.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
 
         User updatedUser = userRepository.save(existingUser);
         return userMapper.toResponseDTO(updatedUser);

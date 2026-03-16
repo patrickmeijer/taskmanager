@@ -42,7 +42,7 @@ public class TaskController {
     @PutMapping("/{taskId}")
     @ResponseStatus(HttpStatus.OK)
     public TaskResponseDTO updateTask(@PathVariable Long taskId, @Valid @RequestBody TaskRequestDTO taskRequestDTO) {
-        return taskService.updateTask(taskId, taskRequestDTO);
+        return taskService.update(taskId, taskRequestDTO);
     }
 
     @DeleteMapping("/{taskId}")

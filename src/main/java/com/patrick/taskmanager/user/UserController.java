@@ -37,7 +37,7 @@ public class UserController {
     @PutMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public UserResponseDTO updateUser(@PathVariable Long userId, @Valid @RequestBody UserRequestDTO userRequestDTO) {
-        return userService.updateUser(userId, userRequestDTO);
+        return userService.update(userId, userRequestDTO);
     }
 
     @DeleteMapping("/{userId}")

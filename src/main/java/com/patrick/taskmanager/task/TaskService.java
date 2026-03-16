@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class TaskService {
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
@@ -27,8 +27,9 @@ public class TaskService {
                 .toList();
     }
 
-    public TaskResponseDTO save(TaskRequestDTO dto) {
-        Task task = taskMapper.toEntity(dto);
+    @Transactional
+    public TaskResponseDTO save(TaskRequestDTO request) {
+        Task task = taskMapper.toEntity(request);
 
         if (task.getStatus() == null) {
             task.setStatus(TaskStatus.OPEN);
@@ -38,14 +39,15 @@ public class TaskService {
         return taskMapper.toResponseDTO(savedTask);
     }
 
-    public TaskResponseDTO updateTask(Long taskId, TaskRequestDTO taskDetails) {
+    @Transactional
+    public TaskResponseDTO update(Long taskId, TaskRequestDTO request) {
         Task existingTask = findTaskByIdOrThrow(taskId);
-        existingTask.setTitle(taskDetails.getTitle());
-        existingTask.setDescription(taskDetails.getDescription());
-        existingTask.setStatus(taskDetails.getStatus());
-        existingTask.setPriority(taskDetails.getPriority());
-        existingTask.setPlannedAt(taskDetails.getPlannedAt());
-        existingTask.setDeadline(taskDetails.getDeadline());
+        existingTask.setTitle(request.getTitle());
+        existingTask.setDescription(request.getDescription());
+        existingTask.setStatus(request.getStatus());
+        existingTask.setPriority(request.getPriority());
+        existingTask.setPlannedAt(request.getPlannedAt());
+        existingTask.setDeadline(request.getDeadline());
 
         validateTask(existingTask);
         Task updatedTask = taskRepository.save(existingTask);
