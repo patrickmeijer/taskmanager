@@ -34,6 +34,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation error", message);
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Object> handleInvalidCredentials(InvalidCredentialsException exc) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", exc.getMessage());
+    }
+
     @ExceptionHandler(TransactionSystemException.class)
     public ResponseEntity<Object> handleTransactionException(TransactionSystemException exc) {
         Throwable cause = exc;
