@@ -10,6 +10,7 @@ public class UserResponseDTO {
     private String lastName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private UserRole role;
 
     public UserResponseDTO() {
     }
@@ -68,6 +69,14 @@ public class UserResponseDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     @Override

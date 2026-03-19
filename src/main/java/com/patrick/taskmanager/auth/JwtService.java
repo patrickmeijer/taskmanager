@@ -1,5 +1,6 @@
 package com.patrick.taskmanager.auth;
 
+import com.patrick.taskmanager.user.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -26,9 +27,10 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, UserRole role) {
         return Jwts.builder()
                 .subject(username)
+                .claim("role", role.name())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(signingKey, Jwts.SIG.HS256)

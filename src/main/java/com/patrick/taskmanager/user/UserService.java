@@ -37,6 +37,7 @@ public class UserService {
         validateUniqueness(request, null);
 
         User user = userMapper.toEntity(request);
+        user.setRole(UserRole.ROLE_USER);
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         user.setPassword(encodedPassword);

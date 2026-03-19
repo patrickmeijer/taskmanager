@@ -7,9 +7,11 @@ import com.patrick.taskmanager.task.TaskRepository;
 import com.patrick.taskmanager.task.TaskStatus;
 import com.patrick.taskmanager.user.User;
 import com.patrick.taskmanager.user.UserRepository;
+import com.patrick.taskmanager.user.UserRole;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,14 +20,20 @@ import java.util.List;
 @Configuration
 public class DataInitializer {
     @Bean
-    CommandLineRunner initDatabase(TaskRepository taskRepository, UserRepository userRepository) {
+    CommandLineRunner initDatabase(TaskRepository taskRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             taskRepository.deleteAll();
             userRepository.deleteAll();
 
+            User adminUser = new User();
+            adminUser.setUsername("admin");
+            adminUser.setPassword(passwordEncoder.encode("admin"));
+            adminUser.setRole(UserRole.ROLE_ADMIN);
+            User savedAdmin = userRepository.save(adminUser);
+
             User testUser = new User();
             testUser.setUsername("testuser");
-            testUser.setPassword("dummy-password-only-for-local-dev");
+            testUser.setPassword(passwordEncoder.encode("user123"));
             testUser.setEmail("test@test.com");
             User savedUser = userRepository.save(testUser);
 
