@@ -1,5 +1,6 @@
 package com.patrick.taskmanager.auth;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public AuthResponseDTO login(@Valid @RequestBody AuthRequestDTO request) {
-        return authService.login(request);
+    public AuthResponseDTO login(@Valid @RequestBody AuthRequestDTO request, HttpServletRequest httpRequest) {
+        return authService.login(request, httpRequest.getRemoteAddr());
     }
 }
