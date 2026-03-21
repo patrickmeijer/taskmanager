@@ -3,7 +3,8 @@ package com.patrick.taskmanager.user;
 import com.patrick.taskmanager.exception.EmailAlreadyExistsException;
 import com.patrick.taskmanager.exception.UserNotFoundException;
 import com.patrick.taskmanager.exception.UsernameAlreadyTakenException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +18,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    @Autowired
     public UserService(UserRepository userRepository, UserMapper userMapper,  PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
@@ -43,6 +44,7 @@ public class UserService {
         user.setPassword(encodedPassword);
 
         User savedUser = userRepository.save(user);
+        logger.info("New user registered with id {} ('{}') with role {}", savedUser.getId(), savedUser.getUsername(), savedUser.getRole());
         return userMapper.toResponseDTO(savedUser);
     }
 
@@ -52,16 +54,17 @@ public class UserService {
 
         validateUniqueness(request, userId);
         existingUser.setUsername(request.getUsername());
-        existingUser.setPassword(request.getPassword()); // TODO Bcrypt hashing
         existingUser.setEmail(request.getEmail());
         existingUser.setFirstName(request.getFirstName());
         existingUser.setLastName(request.getLastName());
 
         if (request.getPassword() != null &&  !request.getPassword().isBlank()) {
             existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+            logger.info("Password updated for user ID '{}' ('{}')",  userId, existingUser.getUsername());
         }
 
         User updatedUser = userRepository.save(existingUser);
+        logger.info("User profile updated for user ID '{}' ('{}')", userId, updatedUser.getUsername());
         return userMapper.toResponseDTO(updatedUser);
     }
 
@@ -80,19 +83,22 @@ public class UserService {
         return userMapper.toResponseDTO(user);
     }
 
+    @Transactional
     public void deleteUserById(Long userId) {
-        userRepository.delete(findUserByIdOrThrow(userId));
+        User user = findUserByIdOrThrow(userId);
+        userRepository.delete(user);
+        logger.warn("User with id '{}' ('{}') was deleted", userId, user.getUsername());
     }
 
-    private void validateUniqueness(UserRequestDTO dto, Long currentId) {
-        userRepository.findByUsername(dto.getUsername())
+    private void validateUniqueness(UserRequestDTO request, Long currentId) {
+        userRepository.findByUsername(request.getUsername())
                 .filter(foundUser -> currentId == null || !currentId.equals(foundUser.getId()))
-                .ifPresent(user -> { throw new UsernameAlreadyTakenException(dto.getUsername());
+                .ifPresent(user -> { throw new UsernameAlreadyTakenException(request.getUsername());
                 });
 
-        userRepository.findByEmail(dto.getEmail())
+        userRepository.findByEmail(request.getEmail())
                 .filter(foundUser -> currentId == null || !currentId.equals(foundUser.getId()))
-                .ifPresent(user -> { throw new EmailAlreadyExistsException(dto.getEmail());
+                .ifPresent(user -> { throw new EmailAlreadyExistsException(request.getEmail());
                 });
     }
 }

@@ -72,7 +72,7 @@ class TaskServiceTest {
     @Test
     void whenAllFiltersProvided_thenReturnFilteredTasks() {
         Sort sort = Sort.by("createdAt").descending();
-        when(taskRepository.findAllByFilters(TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort))
+        when(taskRepository.findAllByFilters(, TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort))
                 .thenReturn(List.of(testTask));
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
@@ -80,68 +80,68 @@ class TaskServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("Portfolio Project", result.get(0).getTitle());
-        verify(taskRepository, times(1)).findAllByFilters(TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort);
+        verify(taskRepository, times(1)).findAllByFilters(, TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort);
         verify(taskMapper, times(1)).toResponseDTO(testTask);
     }
 
     @Test
     void whenNoFilters_thenReturnAllTasksSorted() {
         Sort sort = Sort.by("createdAt").descending();
-        when(taskRepository.findAllByFilters(null, null, null, sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(, null, null, null, sort)).thenReturn(List.of(testTask));
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
         List<TaskResponseDTO> result = taskService.searchTasks(null, null, null, sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters(null, null, null, sort);
+        verify(taskRepository, times(1)).findAllByFilters(, null, null, null, sort);
     }
 
     @Test
     void whenStatusProvided_thenReturnTasksByStatus() {
         Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters(TaskStatus.OPEN, null, null, sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(, TaskStatus.OPEN, null, null, sort)).thenReturn(List.of(testTask));
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
         List<TaskResponseDTO> result = taskService.searchTasks(TaskStatus.OPEN, null, null, sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters(TaskStatus.OPEN, null, null, sort);
+        verify(taskRepository, times(1)).findAllByFilters(, TaskStatus.OPEN, null, null, sort);
     }
 
     @Test
     void whenPriorityProvided_thenReturnTasksByPriority() {
         Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters(null, TaskPriority.HIGH, null, sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(, null, TaskPriority.HIGH, null, sort)).thenReturn(List.of(testTask));
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
         List<TaskResponseDTO> result = taskService.searchTasks(null, TaskPriority.HIGH, null, sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters(null, TaskPriority.HIGH, null, sort);
+        verify(taskRepository, times(1)).findAllByFilters(, null, TaskPriority.HIGH, null, sort);
     }
 
     @Test
     void whenPriorityAndStatusProvided_thenReturnTasksByBoth() {
         Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters(TaskStatus.OPEN, TaskPriority.HIGH, null, sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(, TaskStatus.OPEN, TaskPriority.HIGH, null, sort)).thenReturn(List.of(testTask));
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
         List<TaskResponseDTO> result = taskService.searchTasks(TaskStatus.OPEN, TaskPriority.HIGH, null, sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters(TaskStatus.OPEN, TaskPriority.HIGH, null, sort);
+        verify(taskRepository, times(1)).findAllByFilters(, TaskStatus.OPEN, TaskPriority.HIGH, null, sort);
     }
 
     @Test
     void whenTitleProvided_thenReturnTasksByTitle() {
         Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters(null, null, "Portfolio Project", sort)).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByFilters(, null, null, "Portfolio Project", sort)).thenReturn(List.of(testTask));
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
         List<TaskResponseDTO> result = taskService.searchTasks(null, null, "Portfolio Project", sort);
 
         assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters(null, null, "Portfolio Project", sort);
+        verify(taskRepository, times(1)).findAllByFilters(, null, null, "Portfolio Project", sort);
     }
 
     // -------------------------
