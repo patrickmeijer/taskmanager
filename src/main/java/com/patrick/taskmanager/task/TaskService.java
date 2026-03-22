@@ -73,6 +73,18 @@ public class TaskService {
         return taskMapper.toResponseDTO(updatedTask);
     }
 
+    @Transactional
+    public TaskResponseDTO updateStatus(Long taskId, TaskStatus status) {
+        Task existingTask = findTaskByIdOrThrow(taskId);
+
+        validateOwnership(existingTask);
+        existingTask.setStatus(status);
+        Task updatedTask = taskRepository.save(existingTask);
+
+        logger.info("Task ID '{}' ('{}') status updated to '{}' by user '{}'", taskId, updatedTask.getTitle(), status, getCurrentUsername());
+        return taskMapper.toResponseDTO(updatedTask);
+    }
+
     private void validateTask(Task task) {
         if (task.getDeadline() != null && task.getPlannedAt() != null) {
             if (task.getDeadline().isBefore(task.getPlannedAt())) {

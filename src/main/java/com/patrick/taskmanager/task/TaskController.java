@@ -35,14 +35,20 @@ public class TaskController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskResponseDTO createTask(@Valid @RequestBody TaskRequestDTO taskRequestDTO) {
-        return taskService.save(taskRequestDTO);
+    public TaskResponseDTO createTask(@Valid @RequestBody TaskRequestDTO request) {
+        return taskService.save(request);
     }
 
     @PutMapping("/{taskId}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskResponseDTO updateTask(@PathVariable Long taskId, @Valid @RequestBody TaskRequestDTO taskRequestDTO) {
-        return taskService.update(taskId, taskRequestDTO);
+    public TaskResponseDTO updateTask(@PathVariable Long taskId, @Valid @RequestBody TaskRequestDTO request) {
+        return taskService.update(taskId, request);
+    }
+
+    @PatchMapping("/{taskId}/status")
+    @ResponseStatus(HttpStatus.OK)
+    public TaskResponseDTO updateTaskStatus(@PathVariable Long taskId, @Valid @RequestBody TaskStatusUpdateRequestDTO request) {
+        return taskService.updateStatus(taskId, request.getStatus());
     }
 
     @DeleteMapping("/{taskId}")
