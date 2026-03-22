@@ -1,11 +1,12 @@
 package com.patrick.taskmanager.user;
 
-import com.patrick.taskmanager.exception.conflict.EmailAlreadyExistsException;
 import com.patrick.taskmanager.exception.InvalidCredentialsException;
-import com.patrick.taskmanager.exception.notfound.UserNotFoundException;
+import com.patrick.taskmanager.exception.conflict.EmailAlreadyExistsException;
 import com.patrick.taskmanager.exception.conflict.UsernameAlreadyTakenException;
+import com.patrick.taskmanager.exception.notfound.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,11 +65,6 @@ public class UserService {
         return userMapper.toResponseDTO(updatedUser);
     }
 
-    public User findUserByIdOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-    }
-
     public User findUserByUsernameOrThrow(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
@@ -102,6 +98,17 @@ public class UserService {
         User user = findUserByIdOrThrow(userId);
         userRepository.delete(user);
         logger.warn("User with id '{}' ('{}') was deleted", userId, user.getUsername());
+    }
+
+    public boolean isSelf(Long userId) {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = findUserByIdOrThrow(userId);
+        return user.getUsername().equals(currentUsername);
+    }
+
+    private User findUserByIdOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     private void validateUniqueness(UserRequestDTO request, Long currentId) {

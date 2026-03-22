@@ -3,6 +3,7 @@ package com.patrick.taskmanager.task;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,12 @@ public class TaskController {
             @RequestParam(required = false) String title,
             Sort sort) {
         return taskService.searchTasks(status, priority, title, sort);
+    }
+
+    @GetMapping("/admin/all-tasks")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<TaskResponseDTO> getAllTasksForAdmin() {
+        return taskService.getAllTasksForAdmin();
     }
 
     @GetMapping("/{taskId}")

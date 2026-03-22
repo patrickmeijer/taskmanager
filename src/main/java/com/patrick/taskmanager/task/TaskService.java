@@ -38,17 +38,32 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponseDTO> getAllTasksForAdmin() {
+        logger.info("Admin '{}' is fetching ALL tasks in the system", getCurrentUsername());
+        return taskRepository.findAll()
+                .stream()
+                .map(taskMapper::toResponseDTO)
+                .toList();
+    }
+
+    public TaskResponseDTO getTaskById(Long taskId) {
+        String currentUsername = getCurrentUsername();
+        Task task = findTaskByIdOrThrow(taskId);
+        validateOwnership(task, currentUsername);
+        return taskMapper.toResponseDTO(task);
+    }
+
     @Transactional
     public TaskResponseDTO save(TaskRequestDTO request) {
         Task task = taskMapper.toEntity(request);
-
         String currentUsername = getCurrentUsername();
         User currentUser = userService.findUserByUsernameOrThrow(currentUsername);
-        task.setUser(currentUser);
 
+        task.setUser(currentUser);
         if (task.getStatus() == null) {
             task.setStatus(TaskStatus.OPEN);
         }
+
         validateTask(task);
         Task savedTask = taskRepository.save(task);
 
@@ -58,8 +73,10 @@ public class TaskService {
 
     @Transactional
     public TaskResponseDTO update(Long taskId, TaskRequestDTO request) {
+        String currentUsername = getCurrentUsername();
         Task existingTask = findTaskByIdOrThrow(taskId);
-        validateOwnership(existingTask);
+        validateOwnership(existingTask, currentUsername);
+
         existingTask.setTitle(request.getTitle());
         existingTask.setDescription(request.getDescription());
         existingTask.setStatus(request.getStatus());
@@ -70,20 +87,43 @@ public class TaskService {
         validateTask(existingTask);
         Task updatedTask = taskRepository.save(existingTask);
 
-        logger.info("Task ID '{}' ('{}') updated by user '{}'", taskId, updatedTask.getTitle(), getCurrentUsername());
+        logger.info("Task ID '{}' ('{}') updated by user '{}'", taskId, updatedTask.getTitle(), currentUsername);
         return taskMapper.toResponseDTO(updatedTask);
     }
 
     @Transactional
     public TaskResponseDTO updateStatus(Long taskId, TaskStatus status) {
+        String currentUsername = getCurrentUsername();
         Task existingTask = findTaskByIdOrThrow(taskId);
+        validateOwnership(existingTask, currentUsername);
 
-        validateOwnership(existingTask);
         existingTask.setStatus(status);
         Task updatedTask = taskRepository.save(existingTask);
 
-        logger.info("Task ID '{}' ('{}') status updated to '{}' by user '{}'", taskId, updatedTask.getTitle(), status, getCurrentUsername());
+        logger.info("Task ID '{}' ('{}') status updated to '{}' by user '{}'", taskId, updatedTask.getTitle(), status, currentUsername);
         return taskMapper.toResponseDTO(updatedTask);
+    }
+
+    @Transactional
+    public void deleteTaskById(Long taskId) {
+        String currentUsername = getCurrentUsername();
+        Task task = findTaskByIdOrThrow(taskId);
+        validateOwnership(task, currentUsername);
+
+        taskRepository.delete(task);
+        logger.info("Task ID '{}' ('{}') has been deleted by user '{}'", taskId, task.getTitle(), currentUsername);
+    }
+
+    private void validateOwnership(Task task, String username) {
+        boolean isOwner = task.getUser().getUsername().equals(username);
+        boolean isAdmin = Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication())
+                .getAuthorities().stream()
+                .anyMatch(a -> Objects.equals(a.getAuthority(), UserRole.ROLE_ADMIN.name()));
+
+        if (!isOwner && !isAdmin) {
+            logger.warn("Unauthorized access: User '{}' tried to access Task ID {} owned by '{}'", username, task.getId(), task.getUser().getUsername());
+            throw new AccessDeniedException("You do not have permission to access this task");
+        }
     }
 
     private void validateTask(Task task) {
@@ -92,7 +132,6 @@ public class TaskService {
                 throw new InvalidTaskException("Deadline cannot be before planned date");
             }
         }
-
         if (task.getStartTime() != null && task.getEndTime() != null) {
             if (task.getEndTime().isBefore(task.getStartTime())) {
                 throw new InvalidTaskException("End time cannot be before start time");
@@ -105,36 +144,7 @@ public class TaskService {
                 .orElseThrow(() -> new TaskNotFoundException(taskId));
     }
 
-    public TaskResponseDTO getTaskById(Long taskId) {
-        Task task = findTaskByIdOrThrow(taskId);
-        validateOwnership(task);
-        return taskMapper.toResponseDTO(task);
-    }
-
-    @Transactional
-    public void deleteTaskById(Long taskId) {
-        Task task = findTaskByIdOrThrow(taskId);
-        validateOwnership(task);
-        taskRepository.delete(task);
-
-        logger.info("Task ID '{}' ('{}') has been deleted by user '{}'", taskId, task.getTitle(), getCurrentUsername());
-    }
-
     private String getCurrentUsername() {
         return Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getName();
-    }
-
-    private void validateOwnership(Task task) {
-        String currentUsername = getCurrentUsername();
-        boolean isOwner = task.getUser().getUsername().equals(currentUsername);
-        boolean isAdmin = Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication())
-                .getAuthorities().stream()
-                .anyMatch(a -> Objects.equals(a.getAuthority(), UserRole.ROLE_ADMIN.name()));
-
-
-        if (!isOwner && !isAdmin) {
-            logger.warn("Unauthorized access: User '{}' tried to access Task ID {} owned by '{}'", currentUsername, task.getId(), task.getUser().getUsername());
-            throw new AccessDeniedException("You do not have permission to access this task");
-        }
     }
 }
