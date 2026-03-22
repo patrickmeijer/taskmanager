@@ -1,5 +1,6 @@
 package com.patrick.taskmanager.task;
 
+import com.patrick.taskmanager.exception.InvalidTaskException;
 import com.patrick.taskmanager.exception.notfound.TaskNotFoundException;
 import com.patrick.taskmanager.user.User;
 import com.patrick.taskmanager.user.UserRole;
@@ -88,13 +89,13 @@ public class TaskService {
     private void validateTask(Task task) {
         if (task.getDeadline() != null && task.getPlannedAt() != null) {
             if (task.getDeadline().isBefore(task.getPlannedAt())) {
-                throw new IllegalStateException("Deadline cannot be before planned date");
+                throw new InvalidTaskException("Deadline cannot be before planned date");
             }
         }
 
         if (task.getStartTime() != null && task.getEndTime() != null) {
             if (task.getEndTime().isBefore(task.getStartTime())) {
-                throw new IllegalStateException("End time cannot be before start time");
+                throw new InvalidTaskException("End time cannot be before start time");
             }
         }
     }

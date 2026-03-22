@@ -26,10 +26,10 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, "Access Denied", "You do not have permission to perform this action");
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Object> handleIllegalState(IllegalStateException exc) {
-        logger.warn("Illegal state: {}", exc.getMessage());
-        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Error", exc.getMessage());
+    @ExceptionHandler(InvalidTaskException.class)
+    public ResponseEntity<Object> handleInvalidTask(InvalidTaskException exc) {
+        logger.warn("Invalid task data: {}", exc.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation error", exc.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -60,8 +60,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleTransactionException(TransactionSystemException exc) {
         Throwable cause = exc;
         while (cause != null) {
-            if (cause instanceof IllegalStateException ise) {
-                return handleIllegalState(ise);
+            if (cause instanceof InvalidTaskException ite) {
+                return handleInvalidTask(ite);
             }
             if (cause instanceof ConstraintViolationException cve) {
                 return handleConstraintViolation(cve);
