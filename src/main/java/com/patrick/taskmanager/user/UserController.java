@@ -30,14 +30,20 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponseDTO createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        return userService.save(userRequestDTO);
+    public UserResponseDTO createUser(@Valid @RequestBody UserRequestDTO request) {
+        return userService.save(request);
     }
 
     @PutMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserResponseDTO updateUser(@PathVariable Long userId, @Valid @RequestBody UserRequestDTO userRequestDTO) {
-        return userService.update(userId, userRequestDTO);
+    public UserResponseDTO updateUser(@PathVariable Long userId, @Valid @RequestBody UserRequestDTO request) {
+        return userService.update(userId, request);
+    }
+
+    @PatchMapping("/{userId}/password")
+    @ResponseStatus(HttpStatus.OK)
+    public void changePassword(@PathVariable Long userId, @Valid @RequestBody ChangePasswordRequestDTO request) {
+        userService.changePassword(userId, request);
     }
 
     @DeleteMapping("/{userId}")

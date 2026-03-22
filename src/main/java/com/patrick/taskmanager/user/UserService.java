@@ -1,6 +1,7 @@
 package com.patrick.taskmanager.user;
 
 import com.patrick.taskmanager.exception.EmailAlreadyExistsException;
+import com.patrick.taskmanager.exception.InvalidCredentialsException;
 import com.patrick.taskmanager.exception.UserNotFoundException;
 import com.patrick.taskmanager.exception.UsernameAlreadyTakenException;
 import org.slf4j.Logger;
@@ -58,11 +59,6 @@ public class UserService {
         existingUser.setFirstName(request.getFirstName());
         existingUser.setLastName(request.getLastName());
 
-        if (request.getPassword() != null &&  !request.getPassword().isBlank()) {
-            existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
-            logger.info("Password updated for user ID '{}' ('{}')",  userId, existingUser.getUsername());
-        }
-
         User updatedUser = userRepository.save(existingUser);
         logger.info("User profile updated for user ID '{}' ('{}')", userId, updatedUser.getUsername());
         return userMapper.toResponseDTO(updatedUser);
@@ -81,6 +77,24 @@ public class UserService {
     public UserResponseDTO getUserById(Long userId) {
         User user = findUserByIdOrThrow(userId);
         return userMapper.toResponseDTO(user);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequestDTO request) {
+        User user = findUserByIdOrThrow(userId);
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            logger.warn("Failed password change attempt for user ID '{}' ('{}')", userId, user.getUsername());
+            throw new InvalidCredentialsException();
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new IllegalArgumentException("New passwords do not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        logger.info("Password changed successfully for user ID '{}' ('{}')", userId, user.getUsername());
     }
 
     @Transactional
