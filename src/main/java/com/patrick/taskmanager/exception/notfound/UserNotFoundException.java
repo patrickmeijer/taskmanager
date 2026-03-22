@@ -1,4 +1,4 @@
-package com.patrick.taskmanager.exception;
+package com.patrick.taskmanager.exception.notfound;
 
 public class UserNotFoundException extends ResourceNotFoundException {
     public UserNotFoundException(Long id) {

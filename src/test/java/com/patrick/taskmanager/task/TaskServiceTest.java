@@ -1,6 +1,6 @@
 package com.patrick.taskmanager.task;
 
-import com.patrick.taskmanager.exception.TaskNotFoundException;
+import com.patrick.taskmanager.exception.notfound.TaskNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

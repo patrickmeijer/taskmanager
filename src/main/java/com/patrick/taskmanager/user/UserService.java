@@ -1,9 +1,9 @@
 package com.patrick.taskmanager.user;
 
-import com.patrick.taskmanager.exception.EmailAlreadyExistsException;
+import com.patrick.taskmanager.exception.conflict.EmailAlreadyExistsException;
 import com.patrick.taskmanager.exception.InvalidCredentialsException;
-import com.patrick.taskmanager.exception.UserNotFoundException;
-import com.patrick.taskmanager.exception.UsernameAlreadyTakenException;
+import com.patrick.taskmanager.exception.notfound.UserNotFoundException;
+import com.patrick.taskmanager.exception.conflict.UsernameAlreadyTakenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;

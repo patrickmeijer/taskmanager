@@ -1,5 +1,7 @@
 package com.patrick.taskmanager.exception;
 
+import com.patrick.taskmanager.exception.conflict.ConflictException;
+import com.patrick.taskmanager.exception.notfound.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

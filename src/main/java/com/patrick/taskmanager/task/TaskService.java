@@ -1,6 +1,6 @@
 package com.patrick.taskmanager.task;
 
-import com.patrick.taskmanager.exception.TaskNotFoundException;
+import com.patrick.taskmanager.exception.notfound.TaskNotFoundException;
 import com.patrick.taskmanager.user.User;
 import com.patrick.taskmanager.user.UserRole;
 import com.patrick.taskmanager.user.UserService;
