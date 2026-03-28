@@ -24,7 +24,7 @@ public class TaskControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @WithMockUser(username = "testuser", roles = {"ROLE_USER"})
+    @WithMockUser(username = "testuser", roles = {"USER"})
     void createTask_ShouldReturnCreatedTask() throws Exception {
         TaskRequestDTO request = new TaskRequestDTO();
         request.setTitle("Write documentation");
