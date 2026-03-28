@@ -14,8 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -101,5 +101,75 @@ public class TaskControllerIntegrationTest {
 
         mockMvc.perform(get("/api/tasks/" + task.getId()))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void updateTask_thenReturnUpdatedTask() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+        Task task = new Task();
+        task.setTitle("Old title");
+        task.setUser(owner);
+        task = taskRepository.save(task);
+
+        TaskRequestDTO updateRequest = new TaskRequestDTO();
+        updateRequest.setTitle("New title");
+        updateRequest.setPriority(TaskPriority.LOW);
+
+        mockMvc.perform(put("/api/tasks/" + task.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("New title"));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void updateTaskStatus_thenReturnUpdatedTaskStatus() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+        Task task = new Task();
+        task.setTitle("Patch test task");
+        task.setUser(owner);
+        task = taskRepository.save(task);
+
+        TaskRequestDTO updateRequest = new TaskRequestDTO();
+        updateRequest.setStatus(TaskStatus.COMPLETED);
+
+        mockMvc.perform(patch("/api/tasks/" + task.getId() + "/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
+
+        Task updatedTask = taskRepository.findById(task.getId()).orElseThrow();
+        assertEquals(TaskStatus.COMPLETED, updatedTask.getStatus());
+    }
+
+    @Test
+    @WithMockUser(username = "otheruser")
+    void deleteTask_WhenNotOwner_thenReturnForbidden() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+        Task task = new Task();
+        task.setTitle("Safe task");
+        task.setUser(owner);
+        task = taskRepository.save(task);
+
+        mockMvc.perform(delete("/api/tasks/" + task.getId()))
+                .andExpect(status().isForbidden());
+        assertTrue(taskRepository.existsById(task.getId()));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void deleteTask_WhenOwner_thenReturnNoContent() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+        Task task = new Task();
+        task.setTitle("Task to delete");
+        task.setUser(owner);
+        task = taskRepository.save(task);
+
+        mockMvc.perform(delete("/api/tasks/" + task.getId()))
+                .andExpect(status().isNoContent());
+        assertFalse(taskRepository.existsById(task.getId()));
     }
 }

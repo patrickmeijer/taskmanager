@@ -79,10 +79,13 @@ public class TaskService {
 
         existingTask.setTitle(request.getTitle());
         existingTask.setDescription(request.getDescription());
-        existingTask.setStatus(request.getStatus());
         existingTask.setPriority(request.getPriority());
         existingTask.setPlannedAt(request.getPlannedAt());
         existingTask.setDeadline(request.getDeadline());
+
+        if (request.getStatus() != null) {
+            existingTask.setStatus(request.getStatus());
+        }
 
         validateTask(existingTask);
         Task updatedTask = taskRepository.save(existingTask);
