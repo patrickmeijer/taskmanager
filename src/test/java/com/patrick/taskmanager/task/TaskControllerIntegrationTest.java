@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,18 +37,24 @@ public class TaskControllerIntegrationTest {
 
     @BeforeEach
     public void setup() {
+        taskRepository.deleteAll(); // tasks before users because of foreign key constraint
         userRepository.deleteAll();
-        taskRepository.deleteAll();
 
         User user = new User();
         user.setUsername("testuser");
         user.setPassword("password");
         user.setRole(UserRole.ROLE_USER);
         userRepository.save(user);
+
+        User admin = new User();
+        admin.setUsername("adminuser");
+        admin.setPassword("password");
+        admin.setRole(UserRole.ROLE_ADMIN);
+        userRepository.save(admin);
     }
 
     @Test
-    @WithMockUser(username = "testuser", roles = {"USER"})
+    @WithMockUser(username = "testuser")
     void createTask_ShouldReturnCreatedTask() throws Exception {
         TaskRequestDTO request = new TaskRequestDTO();
         request.setTitle("Write documentation");
@@ -62,5 +69,37 @@ public class TaskControllerIntegrationTest {
                 .andExpect(jsonPath("$.title").value("Write documentation"))
                 .andExpect(jsonPath("$.priority").value("MEDIUM"))
                 .andExpect(jsonPath("$.id").exists());
+    }
+
+    @Test
+    @WithMockUser(username = "otheruser")
+    void getTaskById_WhenNotOwner_thenReturnForbidden() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+        Task task = new Task();
+        task.setTitle("Private task");
+        task.setUser(owner);
+        task = taskRepository.save(task);
+
+        mockMvc.perform(get("/api/tasks/" + task.getId()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getTaskById_WhenNotLoggedIn_thenReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/tasks/1"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "adminuser", roles = "ADMIN")
+    void getTaskById_WhenAdminButNotOwner_thenReturnOk() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+        Task task = new Task();
+        task.setTitle("Private task");
+        task.setUser(owner);
+        task = taskRepository.save(task);
+
+        mockMvc.perform(get("/api/tasks/" + task.getId()))
+                .andExpect(status().isOk());
     }
 }
