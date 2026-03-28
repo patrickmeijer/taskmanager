@@ -5,10 +5,13 @@ spring:
     username: sa
     password:
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
 app:
   jwt:
     secret: test-secret-key-only-for-integration-tests-not-for-production
