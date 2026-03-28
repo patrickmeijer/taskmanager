@@ -60,9 +60,7 @@ public class TaskService {
         User currentUser = userService.findUserByUsernameOrThrow(currentUsername);
 
         task.setUser(currentUser);
-        if (task.getStatus() == null) {
-            task.setStatus(TaskStatus.OPEN);
-        }
+        task.setStatus(TaskStatus.OPEN);
 
         validateTask(task);
         Task savedTask = taskRepository.save(task);
@@ -82,10 +80,6 @@ public class TaskService {
         existingTask.setPriority(request.getPriority());
         existingTask.setPlannedAt(request.getPlannedAt());
         existingTask.setDeadline(request.getDeadline());
-
-        if (request.getStatus() != null) {
-            existingTask.setStatus(request.getStatus());
-        }
 
         validateTask(existingTask);
         Task updatedTask = taskRepository.save(existingTask);

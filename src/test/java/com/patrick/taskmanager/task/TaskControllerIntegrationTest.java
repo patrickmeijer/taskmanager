@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -72,6 +74,22 @@ public class TaskControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "testuser")
+    void createTask_WhenDeadlineBeforePlannedAt_thenReturnBadRequest() throws Exception {
+        TaskRequestDTO request = new TaskRequestDTO();
+        request.setTitle("Invalid task");
+        request.setDescription("This is a description");
+        request.setPriority(TaskPriority.MEDIUM);
+        request.setPlannedAt(LocalDate.of(2026, 7, 10));
+        request.setDeadline(LocalDate.of(2026, 7, 5));
+
+        mockMvc.perform(post("/api/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @WithMockUser(username = "otheruser")
     void getTaskById_WhenNotOwner_thenReturnForbidden() throws Exception {
         User owner = userRepository.findByUsername("testuser").orElseThrow();
@@ -124,6 +142,25 @@ public class TaskControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "otheruser")
+    void updateTask_WhenNotOwner_thenReturnForbidden() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+        Task task = new Task();
+        task.setTitle("Protected task");
+        task.setUser(owner);
+        task = taskRepository.save(task);
+
+        TaskRequestDTO updateRequest = new TaskRequestDTO();
+        updateRequest.setTitle("Hacked title");
+        updateRequest.setPriority(TaskPriority.LOW);
+
+        mockMvc.perform(put("/api/tasks/" + task.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser(username = "testuser")
     void updateTaskStatus_thenReturnUpdatedTaskStatus() throws Exception {
         User owner = userRepository.findByUsername("testuser").orElseThrow();
@@ -132,7 +169,7 @@ public class TaskControllerIntegrationTest {
         task.setUser(owner);
         task = taskRepository.save(task);
 
-        TaskRequestDTO updateRequest = new TaskRequestDTO();
+        TaskStatusUpdateRequestDTO updateRequest = new TaskStatusUpdateRequestDTO();
         updateRequest.setStatus(TaskStatus.COMPLETED);
 
         mockMvc.perform(patch("/api/tasks/" + task.getId() + "/status")

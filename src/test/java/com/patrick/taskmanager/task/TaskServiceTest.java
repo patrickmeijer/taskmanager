@@ -244,7 +244,6 @@ class TaskServiceTest {
         TaskRequestDTO updateRequest = new TaskRequestDTO();
         updateRequest.setTitle("Updated Title");
         updateRequest.setDescription("Updated Description");
-        updateRequest.setStatus(TaskStatus.IN_PROGRESS);
         updateRequest.setPriority(TaskPriority.HIGH);
         updateRequest.setPlannedAt(LocalDate.of(2026, 3, 20));
         updateRequest.setDeadline(LocalDate.of(2026, 3, 25));

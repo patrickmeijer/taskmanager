@@ -1,6 +1,9 @@
 package com.patrick.taskmanager.task;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
@@ -11,8 +14,6 @@ public class TaskRequestDTO {
 
     @Size(max = 500)
     private String description;
-
-    private TaskStatus status;
 
     @NotNull(message = "Priority is mandatory")
     private TaskPriority priority;
@@ -43,14 +44,6 @@ public class TaskRequestDTO {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
     }
 
     public TaskPriority getPriority() {

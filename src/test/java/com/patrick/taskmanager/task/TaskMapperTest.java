@@ -34,7 +34,6 @@ class TaskMapperTest {
         testRequest = new TaskRequestDTO();
         testRequest.setTitle("Portfolio Project");
         testRequest.setDescription("Testing the portfolio project");
-        testRequest.setStatus(TaskStatus.OPEN);
         testRequest.setPriority(TaskPriority.HIGH);
         testRequest.setPlannedAt(LocalDate.of(2026, 3, 20));
         testRequest.setDeadline(LocalDate.of(2026, 3, 25));

@@ -33,9 +33,6 @@ public class TaskMapper {
         Task task = new Task();
         task.setTitle(dto.getTitle());
         task.setDescription(dto.getDescription());
-        if (dto.getStatus() != null) {
-            task.setStatus(dto.getStatus());
-        }
         task.setPriority(dto.getPriority());
         task.setPlannedAt(dto.getPlannedAt());
         task.setDeadline(dto.getDeadline());
