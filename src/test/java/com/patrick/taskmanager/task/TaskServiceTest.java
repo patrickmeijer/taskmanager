@@ -1,6 +1,9 @@
 package com.patrick.taskmanager.task;
 
+import com.patrick.taskmanager.exception.InvalidTaskException;
 import com.patrick.taskmanager.exception.notfound.TaskNotFoundException;
+import com.patrick.taskmanager.user.User;
+import com.patrick.taskmanager.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +33,9 @@ class TaskServiceTest {
     @Mock
     private TaskMapper taskMapper;
 
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private TaskService taskService;
 
@@ -45,6 +51,9 @@ class TaskServiceTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
+        User testUser = new User();
+        testUser.setUsername("testuser");
+
         testTask = new Task();
         testTask.setId(1L);
         testTask.setTitle("Portfolio Project");
@@ -55,6 +64,8 @@ class TaskServiceTest {
         testTask.setDeadline(LocalDate.of(2026, 3, 25));
         testTask.setStartTime(LocalDateTime.of(2026, 3, 20, 9, 0));
         testTask.setEndTime(LocalDateTime.of(2026, 3, 20, 11, 30));
+
+        testTask.setUser(testUser);
 
         testRequest = new TaskRequestDTO();
         testRequest.setTitle("Portfolio Project");
@@ -221,7 +232,7 @@ class TaskServiceTest {
         testTask.setDeadline(testTask.getPlannedAt().minusDays(1));
         when(taskMapper.toEntity(testRequest)).thenReturn(testTask);
 
-        assertThrows(IllegalStateException.class, () -> taskService.save(testRequest));
+        assertThrows(InvalidTaskException.class, () -> taskService.save(testRequest));
         verify(taskRepository, never()).save(any(Task.class));
     }
 
@@ -230,7 +241,7 @@ class TaskServiceTest {
         testTask.setEndTime(testTask.getStartTime().minusHours(1));
         when(taskMapper.toEntity(testRequest)).thenReturn(testTask);
 
-        assertThrows(IllegalStateException.class, () -> taskService.save(testRequest));
+        assertThrows(InvalidTaskException.class, () -> taskService.save(testRequest));
         verify(taskRepository, never()).save(any(Task.class));
     }
 
