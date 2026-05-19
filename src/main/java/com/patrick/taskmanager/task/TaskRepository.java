@@ -8,10 +8,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
-    @Query("SELECT t FROM Task t WHERE t.user.username = :username AND " +
-            "(:status IS NULL OR t.status = :status) AND " +
-            "(:priority IS NULL OR t.priority = :priority) AND " +
-            "(:title IS NULL OR t.title LIKE %:title%)")
+    @Query("""
+            SELECT t FROM Task t
+            JOIN FETCH t.user
+            WHERE t.user.username = :username
+            AND (:status IS NULL OR t.status = :status)
+            AND (:priority IS NULL OR t.priority = :priority)
+            AND (:title IS NULL OR t.title LIKE %:title%)
+            """)
     List<Task> findAllByFilters(
             @Param("username") String username,
             @Param("status") TaskStatus status,
