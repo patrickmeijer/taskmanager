@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Testcontainers
-public class TaskControllerIntegrationTest {
+public class TaskControllerIT {
 
     @Container
     static PostgreSQLContainer<?> postgres = new  PostgreSQLContainer<>("postgres:16-alpine")
