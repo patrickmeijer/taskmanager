@@ -24,5 +24,5 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run tests with Maven
-        run: ./mvnw test
+      - name: Run Integration Tests with Maven
+        run: ./mvnw clean verify
