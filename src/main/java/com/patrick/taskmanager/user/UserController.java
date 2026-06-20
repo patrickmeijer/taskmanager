@@ -1,11 +1,11 @@
 package com.patrick.taskmanager.user;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -20,8 +20,8 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.OK)
-    public List<UserResponseDTO> getAllUsers() {
-        return userService.getAllUsers();
+    public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
+        return userService.getAllUsers(pageable);
     }
 
     @GetMapping("/{userId}")

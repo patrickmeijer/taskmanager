@@ -7,13 +7,13 @@ import com.patrick.taskmanager.user.UserRole;
 import com.patrick.taskmanager.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -30,20 +30,16 @@ public class TaskService {
         this.userService = userService;
     }
 
-    public List<TaskResponseDTO> searchTasks(TaskStatus status, TaskPriority priority, String title, Sort sort) {
+    public Page<TaskResponseDTO> searchTasks(TaskStatus status, TaskPriority priority, String title, Pageable pageable) {
         String currentUsername = getCurrentUsername();
-        return taskRepository.findAllByFilters(currentUsername, status, priority, title, sort)
-                .stream()
-                .map(taskMapper::toResponseDTO)
-                .toList();
+        Page<Task> taskPage = taskRepository.findAllByFilters(currentUsername, status, priority, title, pageable);
+
+        return taskPage.map(taskMapper::toResponseDTO);
     }
 
-    public List<TaskResponseDTO> getAllTasksForAdmin() {
+    public Page<TaskResponseDTO> getAllTasksForAdmin(Pageable pageable) {
         logger.info("Admin '{}' is fetching ALL tasks in the system", getCurrentUsername());
-        return taskRepository.findAll()
-                .stream()
-                .map(taskMapper::toResponseDTO)
-                .toList();
+        return taskRepository.findAll(pageable).map(taskMapper::toResponseDTO);
     }
 
     public TaskResponseDTO getTaskById(Long taskId) {
