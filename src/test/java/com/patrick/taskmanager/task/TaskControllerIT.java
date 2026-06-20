@@ -229,4 +229,79 @@ public class TaskControllerIT {
                 .andExpect(status().isNoContent());
         assertFalse(taskRepository.existsById(task.getId()));
     }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void searchTasks_WhenPaginatedAndSorted_thenReturnPaginatedAndSortedTasks() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+
+        Task task1 = new Task();
+        task1.setTitle("Alpha Task");
+        task1.setUser(owner);
+        taskRepository.save(task1);
+
+        Task task2 = new Task();
+        task2.setTitle("Omega Task");
+        task2.setUser(owner);
+        taskRepository.save(task2);
+
+        mockMvc.perform(get("/api/tasks")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "title,desc")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.content[0].title").value("Omega Task"))
+                .andExpect(jsonPath("$.content[1].title").value("Alpha Task"));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void searchTasks_WhenFilteredByTitleAndCaseInsensitive_thenReturnFilteredPage() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+
+        Task task1 = new Task();
+        task1.setTitle("Spring Boot Guide");
+        task1.setUser(owner);
+        taskRepository.save(task1);
+
+        Task task2 = new Task();
+        task2.setTitle("Angular Tutorial");
+        task2.setUser(owner);
+        taskRepository.save(task2);
+
+        // Intentionally testing lowercase "spring" to verify database case-insensitivity mapping
+        mockMvc.perform(get("/api/tasks")
+                        .param("title", "spring")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].title").value("Spring Boot Guide"));
+    }
+
+    @Test
+    @WithMockUser(username = "adminuser", roles = "ADMIN")
+    void getAllTasksForAdmin_WhenPaginated_thenReturnAllTasksPaginated() throws Exception {
+        User owner = userRepository.findByUsername("testuser").orElseThrow();
+
+        Task task = new Task();
+        task.setTitle("User's Task Owned by Someone Else");
+        task.setUser(owner);
+        taskRepository.save(task);
+
+        mockMvc.perform(get("/api/tasks/admin/all-tasks")
+                        .param("page", "0")
+                        .param("size", "5")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].title").value("User's Task Owned by Someone Else"));
+    }
 }

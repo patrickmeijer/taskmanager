@@ -1,12 +1,11 @@
 package com.patrick.taskmanager.task;
 
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -20,18 +19,18 @@ public class TaskController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<TaskResponseDTO> searchTasks(
+    public Page<TaskResponseDTO> searchTasks(
             @RequestParam(required = false) TaskStatus status,
             @RequestParam(required = false) TaskPriority priority,
             @RequestParam(required = false) String title,
-            Sort sort) {
-        return taskService.searchTasks(status, priority, title, sort);
+            Pageable pageable) {
+        return taskService.searchTasks(status, priority, title, pageable);
     }
 
     @GetMapping("/admin/all-tasks")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<TaskResponseDTO> getAllTasksForAdmin() {
-        return taskService.getAllTasksForAdmin();
+    public Page<TaskResponseDTO> getAllTasksForAdmin(Pageable pageable) {
+        return taskService.getAllTasksForAdmin(pageable);
     }
 
     @GetMapping("/{taskId}")

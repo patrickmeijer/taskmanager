@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -97,77 +97,110 @@ class TaskServiceTest {
 
     @Test
     void whenAllFiltersProvided_thenReturnFilteredTasks() {
-        Sort sort = Sort.by("createdAt").descending();
-        when(taskRepository.findAllByFilters("testuser", TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort))
-                .thenReturn(List.of(testTask));
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        Page<Task> taskPage = new PageImpl<>(List.of(testTask));
+
+        when(taskRepository.findAllByFilters("testuser", TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", pageable))
+                .thenReturn(taskPage);
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
-        List<TaskResponseDTO> result = taskService.searchTasks(TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort);
+        Page<TaskResponseDTO> result = taskService.searchTasks(TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", pageable);
 
-        assertEquals(1, result.size());
-        assertEquals("Portfolio Project", result.get(0).getTitle());
-        verify(taskRepository, times(1)).findAllByFilters("testuser", TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", sort);
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Portfolio Project", result.getContent().get(0).getTitle());
+        verify(taskRepository, times(1)).findAllByFilters("testuser", TaskStatus.OPEN, TaskPriority.HIGH, "Portfolio Project", pageable);
         verify(taskMapper, times(1)).toResponseDTO(testTask);
     }
 
     @Test
     void whenNoFilters_thenReturnAllTasksSorted() {
-        Sort sort = Sort.by("createdAt").descending();
-        when(taskRepository.findAllByFilters("testuser", null, null, null, sort)).thenReturn(List.of(testTask));
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        Page<Task> taskPage = new PageImpl<>(List.of(testTask));
+
+        when(taskRepository.findAllByFilters("testuser", null, null, null, pageable)).thenReturn(taskPage);
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
-        List<TaskResponseDTO> result = taskService.searchTasks(null, null, null, sort);
+        Page<TaskResponseDTO> result = taskService.searchTasks(null, null, null, pageable);
 
-        assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters("testuser", null, null, null, sort);
+        assertEquals(1, result.getTotalElements());
+        verify(taskRepository, times(1)).findAllByFilters("testuser", null, null, null, pageable);
     }
 
     @Test
     void whenStatusProvided_thenReturnTasksByStatus() {
-        Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters("testuser", TaskStatus.OPEN, null, null, sort)).thenReturn(List.of(testTask));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Task> taskPage = new PageImpl<>(List.of(testTask));
+
+        when(taskRepository.findAllByFilters("testuser", TaskStatus.OPEN, null, null, pageable)).thenReturn(taskPage);
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
-        List<TaskResponseDTO> result = taskService.searchTasks(TaskStatus.OPEN, null, null, sort);
+        Page<TaskResponseDTO> result = taskService.searchTasks(TaskStatus.OPEN, null, null, pageable);
 
-        assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters("testuser", TaskStatus.OPEN, null, null, sort);
+        assertEquals(1, result.getTotalElements());
+        verify(taskRepository, times(1)).findAllByFilters("testuser", TaskStatus.OPEN, null, null, pageable);
     }
 
     @Test
     void whenPriorityProvided_thenReturnTasksByPriority() {
-        Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters("testuser", null, TaskPriority.HIGH, null, sort)).thenReturn(List.of(testTask));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Task> taskPage = new PageImpl<>(List.of(testTask));
+
+        when(taskRepository.findAllByFilters("testuser", null, TaskPriority.HIGH, null, pageable)).thenReturn(taskPage);
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
-        List<TaskResponseDTO> result = taskService.searchTasks(null, TaskPriority.HIGH, null, sort);
+        Page<TaskResponseDTO> result = taskService.searchTasks(null, TaskPriority.HIGH, null, pageable);
 
-        assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters("testuser", null, TaskPriority.HIGH, null, sort);
+        assertEquals(1, result.getTotalElements());
+        verify(taskRepository, times(1)).findAllByFilters("testuser", null, TaskPriority.HIGH, null, pageable);
     }
 
     @Test
     void whenPriorityAndStatusProvided_thenReturnTasksByBoth() {
-        Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters("testuser", TaskStatus.OPEN, TaskPriority.HIGH, null, sort)).thenReturn(List.of(testTask));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Task> taskPage = new PageImpl<>(List.of(testTask));
+
+        when(taskRepository.findAllByFilters("testuser", TaskStatus.OPEN, TaskPriority.HIGH, null, pageable)).thenReturn(taskPage);
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
-        List<TaskResponseDTO> result = taskService.searchTasks(TaskStatus.OPEN, TaskPriority.HIGH, null, sort);
+        Page<TaskResponseDTO> result = taskService.searchTasks(TaskStatus.OPEN, TaskPriority.HIGH, null, pageable);
 
-        assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters("testuser", TaskStatus.OPEN, TaskPriority.HIGH, null, sort);
+        assertEquals(1, result.getTotalElements());
+        verify(taskRepository, times(1)).findAllByFilters("testuser", TaskStatus.OPEN, TaskPriority.HIGH, null, pageable);
     }
 
     @Test
     void whenTitleProvided_thenReturnTasksByTitle() {
-        Sort sort = Sort.unsorted();
-        when(taskRepository.findAllByFilters("testuser", null, null, "Portfolio Project", sort)).thenReturn(List.of(testTask));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Task> taskPage = new PageImpl<>(List.of(testTask));
+
+        when(taskRepository.findAllByFilters("testuser", null, null, "Portfolio Project", pageable)).thenReturn(taskPage);
         when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
 
-        List<TaskResponseDTO> result = taskService.searchTasks(null, null, "Portfolio Project", sort);
+        Page<TaskResponseDTO> result = taskService.searchTasks(null, null, "Portfolio Project", pageable);
 
-        assertEquals(1, result.size());
-        verify(taskRepository, times(1)).findAllByFilters("testuser", null, null, "Portfolio Project", sort);
+        assertEquals(1, result.getTotalElements());
+        verify(taskRepository, times(1)).findAllByFilters("testuser", null, null, "Portfolio Project", pageable);
+    }
+
+    // -------------------------
+    // getAllTasksForAdmin
+    // -------------------------
+
+    @Test
+    void whenGetTasksForAdmin_thenReturnAllTasks() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+        Page<Task> taskPage = new PageImpl<>(List.of(testTask));
+
+        when(taskRepository.findAll(pageable)).thenReturn(taskPage);
+        when(taskMapper.toResponseDTO(testTask)).thenReturn(testResponse);
+
+        Page<TaskResponseDTO> result = taskService.getAllTasksForAdmin(pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        verify(taskRepository, times(1)).findAll(pageable);
+        verify(taskRepository, never()).findAllByFilters(any(), any(), any(), any(), any());
+        verify(taskMapper, times(1)).toResponseDTO(testTask);
     }
 
     // -------------------------
