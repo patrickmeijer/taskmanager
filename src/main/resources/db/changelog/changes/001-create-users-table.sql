@@ -12,7 +12,7 @@ CREATE TABLE users (
     created_at TIMESTAMP(6) NOT NULL,
     updated_at TIMESTAMP(6),
 
-    CONSTRAINT users_pkey PRIMARY KEY (id),
+    CONSTRAINT pk_users PRIMARY KEY (id),
     CONSTRAINT uk_users_email UNIQUE (email),
     CONSTRAINT uk_users_username UNIQUE (username),
     CONSTRAINT users_role_check CHECK ( role IN ('ROLE_USER', 'ROLE_ADMIN') )

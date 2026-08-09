@@ -1,13 +1,12 @@
 package com.patrick.taskmanager.auth;
 
-public class AuthResponseDTO {
-    private String token;
-
-    public AuthResponseDTO(String token) {
-        this.token = token;
-    }
-
-    public String getToken() {
-        return token;
+public record AuthResponseDTO (
+        String accessToken,
+        String refreshToken,
+        String tokenType,
+        long expiresInSeconds
+) {
+    public AuthResponseDTO(String accessToken, String refreshToken, long expiresInSeconds) {
+        this(accessToken, refreshToken, "Bearer", expiresInSeconds);
     }
 }

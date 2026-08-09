@@ -1,25 +1,11 @@
 package com.patrick.taskmanager.auth;
 
-public class AuthRequestDTO {
-    private String username;
-    private String password;
+import jakarta.validation.constraints.NotBlank;
 
-    public AuthRequestDTO() {
-    }
+public record AuthRequestDTO (
+    @NotBlank(message = "Username is required")
+    String username,
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-}
+    @NotBlank(message = "Password is required")
+    String password
+) {}

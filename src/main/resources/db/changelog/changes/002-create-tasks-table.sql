@@ -15,7 +15,7 @@ CREATE TABLE tasks (
     updated_at TIMESTAMP(6),
     user_id BIGINT NOT NULL,
 
-    CONSTRAINT tasks_pkey PRIMARY KEY (id),
+    CONSTRAINT pk_tasks PRIMARY KEY (id),
     CONSTRAINT tasks_priority_check CHECK ( priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT') ),
     CONSTRAINT tasks_status_check CHECK ( status IN ('OPEN', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD') )
 );

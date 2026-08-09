@@ -74,6 +74,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", exc.getMessage());
     }
 
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<Object> handleInvalidRefreshToken(InvalidRefreshTokenException exc) {
+        logger.warn("Invalid refresh token: {}", exc.getMessage());
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", exc.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exc) {
         logger.warn("Method argument not valid: {}", exc.getMessage());
