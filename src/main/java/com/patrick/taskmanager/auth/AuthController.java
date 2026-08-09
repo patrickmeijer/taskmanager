@@ -19,4 +19,10 @@ public class AuthController {
     public AuthResponseDTO login(@Valid @RequestBody AuthRequestDTO request, HttpServletRequest httpRequest) {
         return authService.login(request, httpRequest.getRemoteAddr());
     }
+
+    @PostMapping("/refresh")
+    @ResponseStatus(HttpStatus.OK)
+    public AuthResponseDTO refresh(@Valid @RequestBody RefreshTokenRequestDTO request) {
+        return authService.refreshToken(request);
+    }
 }

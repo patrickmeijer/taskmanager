@@ -13,4 +13,5 @@ spring:
 app:
   jwt:
     secret: test-secret-key-only-for-integration-tests-not-for-production
-    expiration-ms: 3600000
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 604800000
