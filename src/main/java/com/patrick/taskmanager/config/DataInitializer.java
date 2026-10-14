@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Configuration
-@Profile("!test")
+@Profile("local")
 public class DataInitializer {
     @Bean
     CommandLineRunner initDatabase(TaskRepository taskRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
