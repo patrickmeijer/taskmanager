@@ -2,7 +2,9 @@ package com.patrick.taskmanager.auth;
 
 import com.patrick.taskmanager.exception.InvalidCredentialsException;
 import com.patrick.taskmanager.exception.InvalidRefreshTokenException;
+import com.patrick.taskmanager.exception.notfound.UserNotFoundException;
 import com.patrick.taskmanager.user.User;
+import com.patrick.taskmanager.user.UserRepository;
 import com.patrick.taskmanager.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +21,14 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final UserRepository userRepository;
 
-    public AuthService(UserService userService, JwtService jwtService, PasswordEncoder passwordEncoder, RefreshTokenService refreshTokenService, @Value("${app.jwt.access-token-expiration-ms}") long accessTokenExpirationMs) {
+    public AuthService(UserService userService, JwtService jwtService, PasswordEncoder passwordEncoder, RefreshTokenService refreshTokenService, UserRepository userRepository, @Value("${app.jwt.access-token-expiration-ms}") long accessTokenExpirationMs) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.refreshTokenService = refreshTokenService;
+        this.userRepository = userRepository;
         this.accessTokenExpirationMs = accessTokenExpirationMs;
     }
 
@@ -49,7 +53,8 @@ public class AuthService {
         return refreshTokenService.findByToken(request.refreshToken())
                 .map(refreshTokenService::verifyExpiration)
                 .map(oldToken -> {
-                    User user = oldToken.getUser();
+                    User user = userRepository.findById(oldToken.getUserId())
+                            .orElseThrow(() -> new UserNotFoundException(oldToken.getUserId()));
                     RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(oldToken);
                     String newAccessToken = jwtService.generateToken(user.getUsername(), user.getRole());
 

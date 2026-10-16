@@ -31,13 +31,17 @@ public class RefreshTokenService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        refreshTokenRepository.revokeAllByUserId(userId);
+        Iterable<RefreshToken> existingTokens = refreshTokenRepository.findAllByUserId(user.getId());
+        refreshTokenRepository.deleteAll(existingTokens);
 
         RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUser(user);
         refreshToken.setToken(UUID.randomUUID().toString());
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationMs));
+        refreshToken.setUserId(user.getId());
+
+        Instant expiry = Instant.now().plusMillis(refreshTokenExpirationMs);
+        refreshToken.setExpiryDate(expiry);
         refreshToken.setRevoked(false);
+        refreshToken.setTimeToLive(refreshTokenExpirationMs);
 
         return refreshTokenRepository.save(refreshToken);
     }
@@ -51,13 +55,11 @@ public class RefreshTokenService {
     }
 
     public RefreshToken rotateRefreshToken(RefreshToken oldToken) {
-        oldToken.setRevoked(true);
-        refreshTokenRepository.save(oldToken);
-
-        return createRefreshToken(oldToken.getUser().getId());
+        refreshTokenRepository.delete(oldToken);
+        return createRefreshToken(oldToken.getUserId());
     }
 
     public Optional<RefreshToken> findByToken(String token) {
-        return refreshTokenRepository.findByToken(token);
+        return refreshTokenRepository.findById(token);
     }
 }

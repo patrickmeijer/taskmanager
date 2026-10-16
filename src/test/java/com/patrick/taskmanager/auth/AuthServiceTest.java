@@ -3,6 +3,7 @@ package com.patrick.taskmanager.auth;
 import com.patrick.taskmanager.exception.InvalidCredentialsException;
 import com.patrick.taskmanager.exception.notfound.UserNotFoundException;
 import com.patrick.taskmanager.user.User;
+import com.patrick.taskmanager.user.UserRepository;
 import com.patrick.taskmanager.user.UserRole;
 import com.patrick.taskmanager.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,9 @@ class AuthServiceTest {
     @Mock
     private RefreshTokenService refreshTokenService;
 
+    @Mock
+    private UserRepository userRepository;
+
     private AuthService authService;
 
     private AuthRequestDTO authRequest;
@@ -40,7 +44,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userService, jwtService, passwordEncoder, refreshTokenService, 3600000L);
+        authService = new AuthService(userService, jwtService, passwordEncoder, refreshTokenService, userRepository, 3600000L);
 
         authRequest = new AuthRequestDTO("testuser", "password");
 

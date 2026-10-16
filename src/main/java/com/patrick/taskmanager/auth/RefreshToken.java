@@ -1,36 +1,29 @@
 package com.patrick.taskmanager.auth;
 
-import com.patrick.taskmanager.user.User;
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
+import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
-@Entity
-@Table(name = "refresh_tokens")
+@RedisHash("refresh_tokens")
 public class RefreshToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
     private String token;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Indexed
+    private Long userId;
 
-    @Column(nullable = false)
     private Instant expiryDate;
-
-    @Column(nullable = false)
     private boolean revoked = false;
 
-    public RefreshToken() {
-    }
+    @TimeToLive(unit = TimeUnit.MILLISECONDS)
+    private Long timeToLive;
 
-    public Long getId() {
-        return id;
+    public RefreshToken() {
     }
 
     public String getToken() {
@@ -41,12 +34,12 @@ public class RefreshToken {
         this.token = token;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Instant getExpiryDate() {
@@ -63,5 +56,13 @@ public class RefreshToken {
 
     public void setRevoked(boolean revoked) {
         this.revoked = revoked;
+    }
+
+    public Long getTimeToLive() {
+        return timeToLive;
+    }
+
+    public void setTimeToLive(Long timeToLive) {
+        this.timeToLive = timeToLive;
     }
 }
