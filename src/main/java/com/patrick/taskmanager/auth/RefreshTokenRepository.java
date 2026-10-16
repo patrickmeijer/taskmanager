@@ -1,18 +1,11 @@
 package com.patrick.taskmanager.auth;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
-public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
-    Optional<RefreshToken> findByToken(String token);
-
-    @Modifying
-    @Query("UPDATE RefreshToken r SET r.revoked = true WHERE r.user.id = :userId")
-    void revokeAllByUserId(@Param("userId") Long userId);
+public interface RefreshTokenRepository extends CrudRepository<RefreshToken, String>{
+    List<RefreshToken> findAllByUserId(Long userId);
 }
