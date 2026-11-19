@@ -4,9 +4,15 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    groups:
+      maven-deps:
+        patterns: ["*"]
     open-pull-requests-limit: 3
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
