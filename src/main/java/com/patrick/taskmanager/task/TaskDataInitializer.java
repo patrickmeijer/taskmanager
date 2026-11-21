@@ -1,45 +1,38 @@
-package com.patrick.taskmanager.config;
+package com.patrick.taskmanager.task;
 
-
-import com.patrick.taskmanager.task.Task;
-import com.patrick.taskmanager.task.TaskPriority;
-import com.patrick.taskmanager.task.TaskRepository;
-import com.patrick.taskmanager.task.TaskStatus;
 import com.patrick.taskmanager.user.User;
-import com.patrick.taskmanager.user.UserRepository;
-import com.patrick.taskmanager.user.UserRole;
+import com.patrick.taskmanager.user.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Configuration
+@Component
 @Profile("local")
-public class DataInitializer {
-    @Bean
-    CommandLineRunner initDatabase(TaskRepository taskRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        return args -> {
-            taskRepository.deleteAll();
-            userRepository.deleteAll();
+@Order(2)
+class TaskDataInitializer implements CommandLineRunner {
+    private static final Logger log = LoggerFactory.getLogger(TaskDataInitializer.class);
+    private final TaskRepository taskRepository;
+    private final UserService userService;
 
-            User adminUser = new User();
-            adminUser.setUsername("admin");
-            adminUser.setPassword(passwordEncoder.encode("admin123"));
-            adminUser.setRole(UserRole.ROLE_ADMIN);
-            User savedAdmin = userRepository.save(adminUser);
+    TaskDataInitializer(TaskRepository taskRepository, UserService userService) {
+        this.taskRepository = taskRepository;
+        this.userService = userService;
+    }
 
-            User testUser = new User();
-            testUser.setUsername("testuser");
-            testUser.setPassword(passwordEncoder.encode("user123"));
-            testUser.setEmail("test@test.com");
-            User savedUser = userRepository.save(testUser);
+    @Override
+    public void run(String... args) {
+        User owner = userService.findUserByUsernameOrThrow("testuser");
 
-            List<Task> tasks = List.of(
+        taskRepository.deleteAll();
+
+        List<Task> tasks = List.of(
                 // 1. High priority with a deadline
                 new Task("Groceries", "Buy milk, eggs, and bread", TaskStatus.OPEN, TaskPriority.HIGH, null, LocalDate.now().plusDays(1)),
                 // 2. Advanced: Specific time block for a workshop
@@ -59,17 +52,16 @@ public class DataInitializer {
                 new Task("Read Clean Code", "Read chapter 4 about formatting", TaskStatus.IN_PROGRESS, TaskPriority.LOW, null, null),
                 new Task("Fix Auth Bug", "Resolve NullPointerException in Login", TaskStatus.COMPLETED, TaskPriority.HIGH, null, LocalDate.now().minusDays(2)),
                 new Task("Team Sync", "Weekly progress update", TaskStatus.OPEN, TaskPriority.MEDIUM, LocalDate.now().plusDays(1), LocalDate.now().plusDays(1))
-            );
+        );
 
-            tasks.forEach(task -> task.setUser(savedUser));
-            List<Task> savedTasks = taskRepository.saveAll(tasks);
+        tasks.forEach(task -> task.setUser(owner));
+        List<Task> savedTasks = taskRepository.saveAll(tasks);
 
-            if (!savedTasks.isEmpty()) {
-                Long firstId = savedTasks.get(0).getId();
-                Long lastId = savedTasks.get(savedTasks.size() - 1).getId();
-                System.out.println("--- DB refreshed with 10 tasks for user: " + savedUser.getUsername() + " ---");
-                System.out.println("--- New ID range: " + firstId + " to " + lastId + " ---");
-            }
-        };
+        if (!savedTasks.isEmpty()) {
+            Long firstId = savedTasks.get(0).getId();
+            Long lastId = savedTasks.get(savedTasks.size() - 1).getId();
+            log.info("--- DB refreshed with 10 tasks for user: {} ---", owner.getUsername());
+            log.info("--- New ID range: {} to {} ---", firstId, lastId);
+        }
     }
 }
