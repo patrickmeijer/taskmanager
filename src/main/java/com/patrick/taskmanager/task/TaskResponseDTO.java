@@ -3,7 +3,7 @@ package com.patrick.taskmanager.task;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class TaskResponseDTO {
+class TaskResponseDTO {
     private Long id;
     private String title;
     private String description;

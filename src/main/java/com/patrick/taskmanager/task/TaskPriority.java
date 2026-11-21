@@ -1,5 +1,5 @@
 package com.patrick.taskmanager.task;
 
-public enum TaskPriority {
+enum TaskPriority {
     LOW, MEDIUM, HIGH, URGENT
 }

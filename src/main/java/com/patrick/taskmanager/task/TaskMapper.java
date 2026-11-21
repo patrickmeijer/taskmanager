@@ -3,7 +3,7 @@ package com.patrick.taskmanager.task;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TaskMapper {
+class TaskMapper {
 
     public TaskResponseDTO toResponseDTO(Task task) {
         if (task == null) return null;
