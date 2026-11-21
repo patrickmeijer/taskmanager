@@ -3,7 +3,7 @@ package com.patrick.taskmanager.user;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class ChangePasswordRequestDTO {
+class ChangePasswordRequestDTO {
 
     @NotBlank(message = "Current password is required")
     private String currentPassword;

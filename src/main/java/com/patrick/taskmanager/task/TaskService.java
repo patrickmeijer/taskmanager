@@ -18,31 +18,31 @@ import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
-public class TaskService {
+class TaskService {
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
     private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
 
-    public TaskService(TaskRepository taskRepository, TaskMapper taskMapper, UserService userService) {
+    TaskService(TaskRepository taskRepository, TaskMapper taskMapper, UserService userService) {
         this.taskRepository = taskRepository;
         this.taskMapper = taskMapper;
         this.userService = userService;
     }
 
-    public Page<TaskResponseDTO> searchTasks(TaskStatus status, TaskPriority priority, String title, Pageable pageable) {
+    Page<TaskResponseDTO> searchTasks(TaskStatus status, TaskPriority priority, String title, Pageable pageable) {
         String currentUsername = getCurrentUsername();
         Page<Task> taskPage = taskRepository.findAllByFilters(currentUsername, status, priority, title, pageable);
 
         return taskPage.map(taskMapper::toResponseDTO);
     }
 
-    public Page<TaskResponseDTO> getAllTasksForAdmin(Pageable pageable) {
+    Page<TaskResponseDTO> getAllTasksForAdmin(Pageable pageable) {
         logger.info("Admin '{}' is fetching ALL tasks in the system", getCurrentUsername());
         return taskRepository.findAll(pageable).map(taskMapper::toResponseDTO);
     }
 
-    public TaskResponseDTO getTaskById(Long taskId) {
+    TaskResponseDTO getTaskById(Long taskId) {
         String currentUsername = getCurrentUsername();
         Task task = findTaskByIdOrThrow(taskId);
         validateOwnership(task, currentUsername);
@@ -50,7 +50,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponseDTO save(TaskRequestDTO request) {
+    TaskResponseDTO save(TaskRequestDTO request) {
         Task task = taskMapper.toEntity(request);
         String currentUsername = getCurrentUsername();
         User currentUser = userService.findUserByUsernameOrThrow(currentUsername);
@@ -66,7 +66,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponseDTO update(Long taskId, TaskRequestDTO request) {
+    TaskResponseDTO update(Long taskId, TaskRequestDTO request) {
         String currentUsername = getCurrentUsername();
         Task existingTask = findTaskByIdOrThrow(taskId);
         validateOwnership(existingTask, currentUsername);
@@ -85,7 +85,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponseDTO updateStatus(Long taskId, TaskStatus status) {
+    TaskResponseDTO updateStatus(Long taskId, TaskStatus status) {
         String currentUsername = getCurrentUsername();
         Task existingTask = findTaskByIdOrThrow(taskId);
         validateOwnership(existingTask, currentUsername);
@@ -98,7 +98,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void deleteTaskById(Long taskId) {
+    void deleteTaskById(Long taskId) {
         String currentUsername = getCurrentUsername();
         Task task = findTaskByIdOrThrow(taskId);
         validateOwnership(task, currentUsername);

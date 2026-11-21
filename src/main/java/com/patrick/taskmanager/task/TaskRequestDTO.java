@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
-public class TaskRequestDTO {
+class TaskRequestDTO {
     @NotBlank(message = "Title is required")
     @Size(max = 100)
     private String title;

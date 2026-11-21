@@ -2,7 +2,7 @@ package com.patrick.taskmanager.task;
 
 import jakarta.validation.constraints.NotNull;
 
-public class TaskStatusUpdateRequestDTO {
+class TaskStatusUpdateRequestDTO {
 
     @NotNull(message = "Status is required")
     private TaskStatus status;

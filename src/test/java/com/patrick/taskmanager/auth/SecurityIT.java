@@ -1,6 +1,6 @@
 package com.patrick.taskmanager.auth;
 
-import com.patrick.taskmanager.task.TaskRepository;
+import com.patrick.taskmanager.support.DatabaseCleaner;
 import com.patrick.taskmanager.user.User;
 import com.patrick.taskmanager.user.UserRepository;
 import com.patrick.taskmanager.user.UserRole;
@@ -50,13 +50,13 @@ public class SecurityIT {
     private MockMvc mockMvc;
 
     @Autowired
+    DatabaseCleaner databaseCleaner;
+
+    @Autowired
     private JwtService jwtService;
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -69,8 +69,7 @@ public class SecurityIT {
 
     @BeforeEach
     void setUp() {
-        taskRepository.deleteAll();
-        userRepository.deleteAll();
+        databaseCleaner.clean();
 
         User user = new User();
         user.setUsername("testuser");
