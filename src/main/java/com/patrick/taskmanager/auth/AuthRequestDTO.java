@@ -2,7 +2,7 @@ package com.patrick.taskmanager.auth;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record AuthRequestDTO (
+record AuthRequestDTO (
     @NotBlank(message = "Username is required")
     String username,
 

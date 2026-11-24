@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,19 +23,39 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public UserService(UserRepository userRepository, UserMapper userMapper,  PasswordEncoder passwordEncoder) {
+    UserService(UserRepository userRepository, UserMapper userMapper,  PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
+    public User findUserByUsernameOrThrow(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+    }
+
+    public User findUserByIdOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    /** Used from SpEL in @PreAuthorize on UserController. IDE usage search doesn't see it, don't remove or narrow. */
+    public boolean isSelf(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        User user = findUserByIdOrThrow(userId);
+        return user.getUsername().equals(authentication.getName());
+    }
+
+    Page<UserResponseDTO> getAllUsers(Pageable pageable) {
         logger.info("Admin fetching paginated list of users");
         return userRepository.findAll(pageable).map(userMapper::toResponseDTO);
     }
 
     @Transactional
-    public UserResponseDTO save(UserRequestDTO request) {
+    UserResponseDTO save(UserRequestDTO request) {
         validateUniqueness(request, null);
 
         User user = userMapper.toEntity(request);
@@ -49,7 +70,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO update(Long userId, UserRequestDTO request) {
+    UserResponseDTO update(Long userId, UserRequestDTO request) {
         User existingUser = findUserByIdOrThrow(userId);
 
         validateUniqueness(request, userId);
@@ -63,18 +84,13 @@ public class UserService {
         return userMapper.toResponseDTO(updatedUser);
     }
 
-    public User findUserByUsernameOrThrow(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(username));
-    }
-
-    public UserResponseDTO getUserById(Long userId) {
+    UserResponseDTO getUserById(Long userId) {
         User user = findUserByIdOrThrow(userId);
         return userMapper.toResponseDTO(user);
     }
 
     @Transactional
-    public void changePassword(Long userId, ChangePasswordRequestDTO request) {
+    void changePassword(Long userId, ChangePasswordRequestDTO request) {
         User user = findUserByIdOrThrow(userId);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
@@ -92,21 +108,10 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUserById(Long userId) {
+    void deleteUserById(Long userId) {
         User user = findUserByIdOrThrow(userId);
         userRepository.delete(user);
         logger.warn("User with id '{}' ('{}') was deleted", userId, user.getUsername());
-    }
-
-    public boolean isSelf(Long userId) {
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = findUserByIdOrThrow(userId);
-        return user.getUsername().equals(currentUsername);
-    }
-
-    private User findUserByIdOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     private void validateUniqueness(UserRequestDTO request, Long currentId) {

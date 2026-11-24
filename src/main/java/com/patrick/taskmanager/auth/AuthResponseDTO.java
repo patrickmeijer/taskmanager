@@ -1,6 +1,6 @@
 package com.patrick.taskmanager.auth;
 
-public record AuthResponseDTO (
+record AuthResponseDTO (
         String accessToken,
         String refreshToken,
         String tokenType,
