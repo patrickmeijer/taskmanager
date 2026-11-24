@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 @RedisHash("refresh_tokens")
-public class RefreshToken {
+class RefreshToken {
 
     @Id
     private String token;

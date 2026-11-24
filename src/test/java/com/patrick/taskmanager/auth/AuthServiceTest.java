@@ -1,9 +1,9 @@
 package com.patrick.taskmanager.auth;
 
 import com.patrick.taskmanager.exception.InvalidCredentialsException;
+import com.patrick.taskmanager.exception.InvalidRefreshTokenException;
 import com.patrick.taskmanager.exception.notfound.UserNotFoundException;
 import com.patrick.taskmanager.user.User;
-import com.patrick.taskmanager.user.UserRepository;
 import com.patrick.taskmanager.user.UserRole;
 import com.patrick.taskmanager.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,9 +35,6 @@ class AuthServiceTest {
     @Mock
     private RefreshTokenService refreshTokenService;
 
-    @Mock
-    private UserRepository userRepository;
-
     private AuthService authService;
 
     private AuthRequestDTO authRequest;
@@ -44,7 +43,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userService, jwtService, passwordEncoder, refreshTokenService, userRepository, 3600000L);
+        authService = new AuthService(userService, jwtService, passwordEncoder, refreshTokenService, 3600000L);
 
         authRequest = new AuthRequestDTO("testuser", "password");
 
@@ -104,5 +103,35 @@ class AuthServiceTest {
             "Should throw UserNotFoundException when user is not found");
 
         verify(passwordEncoder, never()).matches(anyString(), anyString());
+    }
+
+    @Test
+    void whenRefreshTokenIsValid_thenReturnNewTokens() {
+        RefreshToken oldToken = new RefreshToken();
+        oldToken.setToken("old-refresh-token");
+        oldToken.setUserId(testUser.getId());
+
+        RefreshToken newToken = new RefreshToken();
+        newToken.setToken("new-refresh-token");
+
+        when(refreshTokenService.findByToken("old-refresh-token")).thenReturn(Optional.of(oldToken));
+        when(refreshTokenService.verifyExpiration(oldToken)).thenReturn(oldToken);
+        when(userService.findUserByIdOrThrow(testUser.getId())).thenReturn(testUser);
+        when(refreshTokenService.rotateRefreshToken(oldToken)).thenReturn(newToken);
+        when(jwtService.generateToken(testUser.getUsername(), testUser.getRole())).thenReturn("new-access-token");
+
+        AuthResponseDTO response = authService.refreshToken(new RefreshTokenRequestDTO("old-refresh-token"));
+
+        assertEquals("new-access-token", response.accessToken());
+        assertEquals("new-refresh-token", response.refreshToken());
+        verify(userService).findUserByIdOrThrow(testUser.getId());
+    }
+
+    @Test
+    void whenRefreshTokenUnknown_thenThrowInvalidRefreshTokenException() {
+        when(refreshTokenService.findByToken("nope")).thenReturn(Optional.empty());
+
+        assertThrows(InvalidRefreshTokenException.class,
+                () -> authService.refreshToken(new RefreshTokenRequestDTO("nope")));
     }
 }

@@ -2,8 +2,8 @@ package com.patrick.taskmanager.auth;
 
 import com.patrick.taskmanager.support.DatabaseCleaner;
 import com.patrick.taskmanager.user.User;
-import com.patrick.taskmanager.user.UserRepository;
 import com.patrick.taskmanager.user.UserRole;
+import com.patrick.taskmanager.user.UserTestSupport;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,14 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -34,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class SecurityIT {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16-alpine")
             .withDatabaseName("taskmanager-test")
             .withUsername("test")
             .withPassword("test");
@@ -56,10 +55,7 @@ public class SecurityIT {
     private JwtService jwtService;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private UserTestSupport userTestSupport;
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
@@ -71,18 +67,10 @@ public class SecurityIT {
     void setUp() {
         databaseCleaner.clean();
 
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword(passwordEncoder.encode("password"));
-        user.setRole(UserRole.ROLE_USER);
-        userRepository.save(user);
+        User user = userTestSupport.createUser("testuser", "password", UserRole.ROLE_USER);
         userToken = jwtService.generateToken(user.getUsername(), user.getRole());
 
-        User admin = new User();
-        admin.setUsername("adminuser");
-        admin.setPassword(passwordEncoder.encode("password"));
-        admin.setRole(UserRole.ROLE_ADMIN);
-        userRepository.save(admin);
+        User admin = userTestSupport.createUser("adminuser", "password", UserRole.ROLE_ADMIN);
         adminToken = jwtService.generateToken(admin.getUsername(), admin.getRole());
     }
 
@@ -108,7 +96,7 @@ public class SecurityIT {
 
     @Test
     void whenTokenValidButUserDeleted_thenReturn200() throws Exception {
-        userRepository.deleteAll();
+        databaseCleaner.clean();
         mockMvc.perform(get("/api/users")
                 .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());

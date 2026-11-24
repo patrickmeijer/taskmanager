@@ -1,8 +1,9 @@
 package com.patrick.taskmanager.task;
 
+import com.patrick.taskmanager.support.DatabaseCleaner;
 import com.patrick.taskmanager.user.User;
-import com.patrick.taskmanager.user.UserRepository;
 import com.patrick.taskmanager.user.UserRole;
+import com.patrick.taskmanager.user.UserTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class TaskControllerIT {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new  PostgreSQLContainer<>("postgres:16-alpine")
+    static PostgreSQLContainer postgres = new  PostgreSQLContainer("postgres:16-alpine")
             .withDatabaseName("taskmanager-test")
             .withUsername("test")
             .withPassword("test");
@@ -52,27 +53,21 @@ public class TaskControllerIT {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private TaskRepository taskRepository;
 
+    @Autowired
+    private DatabaseCleaner databaseCleaner;
+
+    @Autowired
+    private UserTestSupport userTestSupport;
+
+    private User owner;
+
     @BeforeEach
-    public void setup() {
-        taskRepository.deleteAll(); // tasks before users because of foreign key constraint
-        userRepository.deleteAll();
-
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("password");
-        user.setRole(UserRole.ROLE_USER);
-        userRepository.save(user);
-
-        User admin = new User();
-        admin.setUsername("adminuser");
-        admin.setPassword("password");
-        admin.setRole(UserRole.ROLE_ADMIN);
-        userRepository.save(admin);
+    void setup() {
+        databaseCleaner.clean();
+        owner = userTestSupport.createUser("testuser", "password", UserRole.ROLE_USER);
+        userTestSupport.createUser("admin", "password", UserRole.ROLE_ADMIN);
     }
 
     @Test
@@ -112,7 +107,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "otheruser")
     void getTaskById_WhenNotOwner_thenReturnForbidden() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
         Task task = new Task();
         task.setTitle("Private task");
         task.setUser(owner);
@@ -131,7 +125,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "adminuser", roles = "ADMIN")
     void getTaskById_WhenAdminButNotOwner_thenReturnOk() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
         Task task = new Task();
         task.setTitle("Private task");
         task.setUser(owner);
@@ -144,7 +137,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "testuser")
     void updateTask_thenReturnUpdatedTask() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
         Task task = new Task();
         task.setTitle("Old title");
         task.setUser(owner);
@@ -164,7 +156,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "otheruser")
     void updateTask_WhenNotOwner_thenReturnForbidden() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
         Task task = new Task();
         task.setTitle("Protected task");
         task.setUser(owner);
@@ -183,7 +174,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "testuser")
     void updateTaskStatus_thenReturnUpdatedTaskStatus() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
         Task task = new Task();
         task.setTitle("Patch test task");
         task.setUser(owner);
@@ -205,7 +195,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "otheruser")
     void deleteTask_WhenNotOwner_thenReturnForbidden() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
         Task task = new Task();
         task.setTitle("Safe task");
         task.setUser(owner);
@@ -219,7 +208,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "testuser")
     void deleteTask_WhenOwner_thenReturnNoContent() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
         Task task = new Task();
         task.setTitle("Task to delete");
         task.setUser(owner);
@@ -233,8 +221,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "testuser")
     void searchTasks_WhenPaginatedAndSorted_thenReturnPaginatedAndSortedTasks() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
-
         Task task1 = new Task();
         task1.setTitle("Alpha Task");
         task1.setUser(owner);
@@ -262,8 +248,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "testuser")
     void searchTasks_WhenFilteredByTitleAndCaseInsensitive_thenReturnFilteredPage() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
-
         Task task1 = new Task();
         task1.setTitle("Spring Boot Guide");
         task1.setUser(owner);
@@ -287,8 +271,6 @@ public class TaskControllerIT {
     @Test
     @WithMockUser(username = "adminuser", roles = "ADMIN")
     void getAllTasksForAdmin_WhenPaginated_thenReturnAllTasksPaginated() throws Exception {
-        User owner = userRepository.findByUsername("testuser").orElseThrow();
-
         Task task = new Task();
         task.setTitle("User's Task Owned by Someone Else");
         task.setUser(owner);

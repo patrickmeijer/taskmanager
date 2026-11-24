@@ -3,7 +3,7 @@ package com.patrick.taskmanager.user;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserMapper {
+class UserMapper {
 
     public UserResponseDTO toResponseDTO(User user) {
         if (user == null) return null;

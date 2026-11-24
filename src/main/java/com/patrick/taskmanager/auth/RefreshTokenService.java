@@ -1,10 +1,6 @@
 package com.patrick.taskmanager.auth;
 
 import com.patrick.taskmanager.exception.InvalidRefreshTokenException;
-import com.patrick.taskmanager.exception.notfound.UserNotFoundException;
-import com.patrick.taskmanager.user.User;
-import com.patrick.taskmanager.user.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,33 +9,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Transactional
-public class RefreshTokenService {
+class RefreshTokenService {
 
     @Value("${app.jwt.refresh-token-expiration-ms}")
     private long refreshTokenExpirationMs;
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
 
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
         this.refreshTokenRepository = refreshTokenRepository;
-        this.userRepository = userRepository;
     }
 
     public RefreshToken createRefreshToken(long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-
-        Iterable<RefreshToken> existingTokens = refreshTokenRepository.findAllByUserId(user.getId());
-        refreshTokenRepository.deleteAll(existingTokens);
+        refreshTokenRepository.deleteAll(refreshTokenRepository.findAllByUserId(userId));
 
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken(UUID.randomUUID().toString());
-        refreshToken.setUserId(user.getId());
-
-        Instant expiry = Instant.now().plusMillis(refreshTokenExpirationMs);
-        refreshToken.setExpiryDate(expiry);
+        refreshToken.setUserId(userId);
+        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationMs));
         refreshToken.setRevoked(false);
         refreshToken.setTimeToLive(refreshTokenExpirationMs);
 
