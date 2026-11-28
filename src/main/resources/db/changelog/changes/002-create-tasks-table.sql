@@ -22,3 +22,8 @@ CREATE TABLE tasks (
 
 ALTER TABLE tasks ADD CONSTRAINT fk_tasks_user
     FOREIGN KEY (user_id) REFERENCES users(id);
+
+--changeset patrick:2-add-task-version
+
+ALTER TABLE tasks
+ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
